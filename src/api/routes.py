@@ -9,9 +9,8 @@ Provides REST endpoints for:
 - Library configuration
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends, status
-from fastapi.responses import JSONResponse
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List
 from datetime import datetime
 
 from .models import (

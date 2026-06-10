@@ -21,10 +21,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import DISCLAIMER, DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES
 from predictors.prediction_engine import PredictionEngine, MatchPrediction
-from predictors.team_stats import TeamData, MatchContext
-from src.scrapers.betano_scraper import BetanoScraper
-from src.scrapers.betclic_scraper import BetclicScraper
-from src.scrapers.solverde_scraper import SolverdeScraper
+from predictors.team_stats import TeamData
+from scrapers.betano_scraper import BetanoScraper
+from scrapers.betclic_scraper import BetclicScraper
+from scrapers.solverde_scraper import SolverdeScraper
 from utils.ev_calculator import (
     analyze_bet,
     find_best_value_bets,
@@ -142,7 +142,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
 
     Example: worldcup scan --date 2026-06-15 --min-ev 10
     """
-    console.print(f"\n[bold blue]📅 Scanning upcoming matches...[/bold blue]\n")
+    console.print("\n[bold blue]📅 Scanning upcoming matches...[/bold blue]\n")
 
     # Determine date range
     if date:
@@ -151,7 +151,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
         except ValueError:
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
-        end_date = start_date + timedelta(days=1)
+        end_date = start_date + timedelta(days=1)  # noqa: F841
     else:
         start_date = datetime.now()
         end_date = start_date + timedelta(days=days)

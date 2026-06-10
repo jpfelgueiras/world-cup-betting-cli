@@ -8,11 +8,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from typing import Optional
 import logging
 
 from .routes import router as api_router
-from .models import ErrorResponse
 
 
 # Configure logging
