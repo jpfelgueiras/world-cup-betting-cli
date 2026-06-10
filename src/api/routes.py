@@ -14,24 +14,11 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from .models import (
-    AnalysisConfig,
-    BookmakerStatus,
-    ConfidenceLevels,
-    ErrorResponse,
-    HealthResponse,
-    LibraryConfig,
-    MarketAverage,
-    MarketType,
-    MatchAnalysisResponse,
-    MatchPredictionRequest,
-    RiskTolerance,
-    ScanMatchResult,
-    ScanRequest,
-    ScanResponse,
-    TeamProbabilities,
-    ValueBet,
-)
+from .models import (AnalysisConfig, BookmakerStatus, ConfidenceLevels,
+                     ErrorResponse, HealthResponse, LibraryConfig,
+                     MarketAverage, MarketType, MatchAnalysisResponse,
+                     MatchPredictionRequest, RiskTolerance, ScanMatchResult,
+                     ScanRequest, ScanResponse, TeamProbabilities, ValueBet)
 
 router = APIRouter(prefix="/api/v1", tags=["betting-insights"])
 
@@ -392,7 +379,8 @@ async def get_config():
     - Enabled bookmakers
     - Cache settings
     """
-    from src.config import BETTING_SITES, DEFAULT_MIN_CONFIDENCE, DEFAULT_MIN_EV
+    from src.config import (BETTING_SITES, DEFAULT_MIN_CONFIDENCE,
+                            DEFAULT_MIN_EV)
 
     enabled_sites = [
         key for key, config in BETTING_SITES.items() if config.get("enabled", False)

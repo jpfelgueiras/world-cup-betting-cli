@@ -6,18 +6,14 @@ Tests all functions in src/utils/ev_calculator.py
 
 import pytest
 
-from src.utils.ev_calculator import (
-    BetRecommendation,
-    analyze_bet,
-    calculate_confidence_from_variance,
-    calculate_ev,
-    calculate_implied_probability,
-    calculate_market_average,
-    calculate_odds_discrepancy,
-    find_best_value_bets,
-    format_ev_display,
-    is_value_bet,
-)
+from src.utils.ev_calculator import (BetRecommendation, analyze_bet,
+                                     calculate_confidence_from_variance,
+                                     calculate_ev,
+                                     calculate_implied_probability,
+                                     calculate_market_average,
+                                     calculate_odds_discrepancy,
+                                     find_best_value_bets, format_ev_display,
+                                     is_value_bet)
 
 
 class TestCalculateEV:

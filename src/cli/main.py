@@ -21,7 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import DEFAULT_MIN_CONFIDENCE  # noqa: E402
 from config import BETTING_SITES, DEFAULT_MIN_EV, DISCLAIMER
-from predictors.prediction_engine import MatchPrediction, PredictionEngine  # noqa: E402
+from predictors.prediction_engine import (MatchPrediction,  # noqa: E402
+                                          PredictionEngine)
 from predictors.team_stats import TeamData  # noqa: E402
 from scrapers.betano_scraper import BetanoScraper  # noqa: E402
 from scrapers.betclic_scraper import BetclicScraper  # noqa: E402

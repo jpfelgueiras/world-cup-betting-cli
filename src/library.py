@@ -30,12 +30,9 @@ from .scrapers.base_scraper import OddsData
 from .scrapers.betano_scraper import BetanoScraper
 from .scrapers.betclic_scraper import BetclicScraper
 from .scrapers.solverde_scraper import SolverdeScraper
-from .utils.ev_calculator import (
-    BetRecommendation,
-    analyze_bet,
-    calculate_market_average,
-    find_best_value_bets,
-)
+from .utils.ev_calculator import (BetRecommendation, analyze_bet,
+                                  calculate_market_average,
+                                  find_best_value_bets)
 
 
 @dataclass
