@@ -8,13 +8,17 @@ import pytest
 from datetime import datetime
 from fastapi.testclient import TestClient
 
+from src.api.app import create_app, app
 from src.api.models import (
     MatchPredictionRequest,
     ScanRequest,
     AnalysisConfig,
     TeamProbabilities,
+    ConfidenceLevels,
     MarketAverage,
     ValueBet,
+    MatchAnalysisResponse,
+    ScanResponse,
     HealthResponse,
     LibraryConfig,
     SiteType,
