@@ -156,7 +156,7 @@ def calculate_confidence_from_variance(
     if len(predictions) < 2:
         return 50.0  # Default confidence with insufficient data
 
-    variance =  # noqa: F841 np.var(predictions)
+    variance = np.var(predictions)  # noqa: F841
     std_dev = np.std(predictions)
 
     # Base confidence from sample size (logarithmic scaling)

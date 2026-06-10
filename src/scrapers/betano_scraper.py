@@ -15,6 +15,7 @@ For production use, consider:
 """
 
 from datetime import datetime, timedelta
+from typing import List, Optional
 from bs4 import BeautifulSoup
 
 from .base_scraper import BaseScraper, OddsData, ScraperError
