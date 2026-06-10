@@ -7,7 +7,6 @@ Supports multiple data sources:
 - Local CSV files
 """
 
-import json
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path

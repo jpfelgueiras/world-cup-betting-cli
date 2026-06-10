@@ -150,10 +150,8 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
         except ValueError:
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
-        _end_date = start_date + timedelta(days=1)
     else:
         start_date = datetime.now()
-        _end_date = start_date + timedelta(days=days)
 
     # Get scrapers
     scrapers = get_scrapers(site)
@@ -439,8 +437,8 @@ def output_table(prediction: MatchPrediction, market_avg: dict, recommendations:
     # Match info panel
     console.print(Panel(
         f"[bold]{prediction.home_team}[/bold] vs [bold]{prediction.away_team}[/bold]\n"
-        f"Model: {prediction.home_win_prob*100:.1f}% / {prediction.draw_prob*100:.1f}% / {prediction.away_win_prob*100:.1f}%\n"
-        f"Over 2.5: {prediction.over_2_5_prob*100:.1f}% | BTTS: {prediction.btts_prob*100:.1f}%",
+        f"Model: {prediction.home_win_prob * 100:.1f}% / {prediction.draw_prob * 100:.1f}% / {prediction.away_win_prob * 100:.1f}%\n"
+        f"Over 2.5: {prediction.over_2_5_prob * 100:.1f}% | BTTS: {prediction.btts_prob * 100:.1f}%",
         title="📊 Model Prediction",
         box=box.ROUNDED
     ))

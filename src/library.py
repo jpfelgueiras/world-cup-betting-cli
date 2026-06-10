@@ -20,12 +20,11 @@ Example usage:
 """
 
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from .config import DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES
-from .predictors.prediction_engine import PredictionEngine, MatchPrediction
+from .predictors.prediction_engine import PredictionEngine
 from .predictors.team_stats import TeamData
 from .scrapers.betano_scraper import BetanoScraper
 from .scrapers.betclic_scraper import BetclicScraper
@@ -353,7 +352,7 @@ class BettingInsights:
 
         for match_key, data in all_matches.items():
             match = data['match']
-            odds_list = data['odds']
+            odds_list = data  # noqa: F841['odds']
 
             # Analyze match
             try:
