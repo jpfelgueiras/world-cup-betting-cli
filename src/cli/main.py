@@ -6,7 +6,7 @@ Main command-line interface using Click framework.
 
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List
 from pathlib import Path
 
@@ -151,7 +151,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
     else:
-        start_date = datetime.now()
+        datetime.now()  # noqa: F841
 
     # Get scrapers
     scrapers = get_scrapers(site)
