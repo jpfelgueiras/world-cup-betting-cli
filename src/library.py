@@ -470,9 +470,11 @@ class BettingInsights:
                     # Cache the odds
                     if self.cache_enabled and self.data_loader:
                         self.data_loader.cache_odds(odds)
+                else:
+                    raise RuntimeError(f"{scraper.site_key}.get_match_odds returned None")
 
-            except Exception:
-                continue  # Skip failed scrapers
+            except Exception as e:
+                raise  # Re-raise to see the actual error
 
         return all_odds
 
