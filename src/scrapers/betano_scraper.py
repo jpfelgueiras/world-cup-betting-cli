@@ -120,22 +120,19 @@ class BetanoScraper(BaseScraper):
         match_date: Optional[datetime] = None
     ) -> OddsData:
         """Create mock odds data for demonstration"""
-        import random
+        import hashlib
         
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
         
-        # Generate realistic-looking odds with some variance
-        home_win = round(random.uniform(1.80, 3.50), 2)
-        draw = round(random.uniform(3.00, 4.00), 2)
-        away_win = round(random.uniform(1.80, 3.50), 2)
+        # Generate deterministic odds based on team names (consistent across Python versions)
+        seed_str = f"{home_team}:{away_team}"
+        seed = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16) % 1000
         
-        # Ensure bookmaker margin (implied probabilities sum > 1)
-        implied_sum = (1/home_win + 1/draw + 1/away_win)
-        if implied_sum < 1.0:
-            # Adjust to ensure bookmaker has an edge
-            home_win = round(home_win * 0.95, 2)
-            away_win = round(away_win * 0.95, 2)
+        # Use simple modulo arithmetic for deterministic "random" values
+        home_win = round(1.80 + (seed % 150) / 100.0, 2)  # 1.80 - 3.30
+        draw = round(3.10 + ((seed // 10) % 70) / 100.0, 2)  # 3.10 - 3.80
+        away_win = round(2.00 + ((seed // 100) % 150) / 100.0, 2)  # 2.00 - 3.50
         
         return OddsData(
             match_id=f"betano_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
@@ -147,10 +144,10 @@ class BetanoScraper(BaseScraper):
             home_win=home_win,
             draw=draw,
             away_win=away_win,
-            over_2_5=round(random.uniform(1.7, 2.1), 2),
-            under_2_5=round(random.uniform(1.7, 2.1), 2),
-            btts_yes=round(random.uniform(1.6, 2.0), 2),
-            btts_no=round(random.uniform(1.7, 2.2), 2),
+            over_2_5=round(1.70 + ((seed // 1000) % 40) / 100.0, 2),
+            under_2_5=round(1.70 + ((seed // 10000) % 40) / 100.0, 2),
+            btts_yes=round(1.60 + ((seed // 100000) % 40) / 100.0, 2),
+            btts_no=round(1.70 + ((seed // 1000000) % 50) / 100.0, 2),
             url=f"{self.base_url}/sport/football/{home_team}-{away_team}",
         )
     
