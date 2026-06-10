@@ -95,28 +95,40 @@ def test_library_analyze_match_integration(monkeypatch):
 
 def test_library_scan_upcoming_matches_aggregates_integration(monkeypatch):
     insights = BettingInsights(cache_enabled=False, enabled_sites=[])
-    insights.scrapers = [StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))]
+    insights.scrapers = [
+        StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))
+    ]
 
-    def fake_analyze_match(home_team, away_team, match_date=None, min_ev=None, min_confidence=None):
-        return type("ScanMatch", (), {
-            "home_team": home_team,
-            "away_team": away_team,
-            "match_date": match_date,
-            "value_bets": [
-                BetRecommendation(
-                    market="1X2 - Home Win",
-                    site="betano",
-                    site_name="Betano.pt",
-                    odds=2.4,
-                    probability=0.4,
-                    ev_percentage=6.0,
-                    confidence=71.0,
-                    reasoning=["edge"],
-                    is_value_bet=True,
-                )
-            ],
-            "has_value_bets": True,
-        })()
+    def fake_analyze_match(
+        home_team,
+        away_team,
+        match_date=None,
+        min_ev=None,
+        min_confidence=None,
+    ):
+        return type(
+            "ScanMatch",
+            (),
+            {
+                "home_team": home_team,
+                "away_team": away_team,
+                "match_date": match_date,
+                "value_bets": [
+                    BetRecommendation(
+                        market="1X2 - Home Win",
+                        site="betano",
+                        site_name="Betano.pt",
+                        odds=2.4,
+                        probability=0.4,
+                        ev_percentage=6.0,
+                        confidence=71.0,
+                        reasoning=["edge"],
+                        is_value_bet=True,
+                    )
+                ],
+                "has_value_bets": True,
+            },
+        )()
 
     monkeypatch.setattr(insights, "analyze_match", fake_analyze_match)
 
@@ -140,7 +152,9 @@ def test_api_predict_and_scan_endpoints_integration(monkeypatch):
     monkeypatch.setattr("src.api.routes.get_prediction_engine", lambda: StubEngine())
     monkeypatch.setattr(
         "src.api.routes.get_scrapers",
-        lambda site="all": [StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))],
+        lambda site="all": [
+            StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))
+        ],
     )
 
     predict_response = client.post(
@@ -168,7 +182,9 @@ def test_api_predict_and_scan_endpoints_integration(monkeypatch):
 def test_cli_predict_json_flow_integration(monkeypatch):
     runner = CliRunner()
 
-    monkeypatch.setattr("src.cli.main.create_mock_team_data", lambda team: {"name": team})
+    monkeypatch.setattr(
+        "src.cli.main.create_mock_team_data", lambda team: {"name": team}
+    )
     monkeypatch.setattr(
         "src.cli.main.PredictionEngine",
         lambda: type(
@@ -179,7 +195,9 @@ def test_cli_predict_json_flow_integration(monkeypatch):
     )
     monkeypatch.setattr(
         "src.cli.main.get_scrapers",
-        lambda _site: [StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))],
+        lambda _site: [
+            StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))
+        ],
     )
 
     result = runner.invoke(
