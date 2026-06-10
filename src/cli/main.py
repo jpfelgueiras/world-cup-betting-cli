@@ -7,7 +7,7 @@ Main command-line interface using Click framework.
 import json
 import sys
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import click
 from rich import box
@@ -18,6 +18,7 @@ from rich.table import Table
 from src.config import BETTING_SITES, DEFAULT_MIN_CONFIDENCE, DEFAULT_MIN_EV, DISCLAIMER
 from src.predictors.prediction_engine import MatchPrediction, PredictionEngine
 from src.predictors.team_stats import TeamData
+from src.scrapers.base_scraper import BaseScraper, OddsData
 from src.scrapers.betano_scraper import BetanoScraper
 from src.scrapers.betclic_scraper import BetclicScraper
 from src.scrapers.solverde_scraper import SolverdeScraper
@@ -189,7 +190,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
     scrapers = get_scrapers(site)
 
     # Collect all upcoming matches
-    all_matches = {}
+    all_matches: Dict[str, Dict[str, Any]] = {}
 
     for scraper in scrapers:
         try:
@@ -216,7 +217,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
 
     for _, data in all_matches.items():
         match = data["match"]
-        odds_list = data["odds"]
+        odds_list: List[OddsData] = data["odds"]
 
         # Create mock team data
         home_data = create_mock_team_data(match.home_team)
@@ -337,9 +338,9 @@ def show_available_sites():
 # Helper functions
 
 
-def get_scrapers(site: str) -> List:
+def get_scrapers(site: str) -> List[BaseScraper]:
     """Get list of scrapers based on site parameter"""
-    scrapers = []
+    scrapers: List[BaseScraper] = []
 
     if site == "all" or site == "betano":
         scrapers.append(BetanoScraper())
