@@ -8,18 +8,18 @@ import pytest
 from datetime import datetime
 from fastapi.testclient import TestClient
 
-from src.api.app import create_app, app
+from src.api.app import create_app, app  # noqa: F401
 from src.api.models import (
     MatchPredictionRequest,
     ScanRequest,
     AnalysisConfig,
     TeamProbabilities,
-    ConfidenceLevels,
+    ConfidenceLevels,  # noqa: F401
     MarketAverage,
     ValueBet,
-    MatchAnalysisResponse,
-    ScanResponse,
-    HealthResponse,
+    MatchAnalysisResponse,  # noqa: F401
+    ScanResponse,  # noqa: F401
+    HealthResponse,  # noqa: F401
     LibraryConfig,
     SiteType,
     RiskTolerance,
@@ -541,22 +541,22 @@ class TestAppCreation:
 
     def test_create_app_with_custom_title(self):
         """Test creating app with custom title"""
-        custom_app = create_app(title="Custom API")
+        custom_app =  # noqa: F841 create_app(title="Custom API")
         assert custom_app.title == "Custom API"
 
     def test_create_app_with_custom_version(self):
         """Test creating app with custom version"""
-        custom_app = create_app(version="2.0.0")
+        custom_app =  # noqa: F841 create_app(version="2.0.0")
         assert custom_app.version == "2.0.0"
 
     def test_create_app_debug_mode(self):
         """Test creating app in debug mode"""
-        custom_app = create_app(debug=True)
+        custom_app =  # noqa: F841 create_app(debug=True)
         assert custom_app.debug is True
 
     def test_create_app_custom_docs_url(self):
         """Test creating app with custom docs URL"""
-        custom_app = create_app(docs_url="/swagger")
+        custom_app =  # noqa: F841 create_app(docs_url="/swagger")
         # Would need to test with TestClient to verify
 
     def test_default_app_exists(self):
