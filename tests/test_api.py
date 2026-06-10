@@ -16,6 +16,7 @@ from src.api.models import MatchAnalysisResponse  # noqa: F401
 from src.api.models import ScanResponse  # noqa: F401
 from src.api.models import (
     AnalysisConfig,
+    ErrorResponse,
     LibraryConfig,
     MarketAverage,
     MatchPredictionRequest,
@@ -501,6 +502,131 @@ class TestErrorHandling:
 
         # Should have error information (FastAPI uses 'error' or 'detail')
         assert "error" in data or "detail" in data
+
+
+class TestSchemaExamples:
+    """Tests for Pydantic schema examples migrated to model_config."""
+
+    @pytest.mark.parametrize(
+        ("model", "expected_example"),
+        [
+            (
+                MatchPredictionRequest,
+                {
+                    "home_team": "Portugal",
+                    "away_team": "Brazil",
+                    "match_date": "2026-06-15T20:00:00Z",
+                    "site": "all",
+                },
+            ),
+            (
+                ScanRequest,
+                {
+                    "days_ahead": 7,
+                    "min_ev": 5.0,
+                    "min_confidence": 60.0,
+                    "site": "all",
+                },
+            ),
+            (
+                ErrorResponse,
+                {
+                    "error": "ValidationError",
+                    "message": "Invalid team name provided",
+                    "code": "INVALID_INPUT",
+                    "details": {"field": "home_team", "reason": "empty string"},
+                },
+            ),
+            (
+                LibraryConfig,
+                {
+                    "min_ev": 5.0,
+                    "min_confidence": 60.0,
+                    "enabled_sites": ["betano", "betclic"],
+                    "cache_enabled": True,
+                    "cache_ttl_hours": 1,
+                },
+            ),
+        ],
+    )
+    def test_model_json_schema_examples(self, model, expected_example):
+        schema = model.model_json_schema()
+        assert schema["example"] == expected_example
+
+    def test_match_analysis_response_json_schema_example(self):
+        schema = MatchAnalysisResponse.model_json_schema()
+        example = schema["example"]
+
+        assert example["match_id"] == "portugal_vs_brazil_20260615"
+        assert example["value_bets"][0]["is_value_bet"] is True
+        assert example["market_averages"]["num_bookmakers"] == 3
+
+
+class TestAppLifespan:
+    """Tests for FastAPI lifespan startup/shutdown behavior."""
+
+    def test_lifespan_initializes_cache_when_dataloader_succeeds(self, monkeypatch):
+        import importlib
+        import sys
+        import types
+
+        app_module = importlib.import_module("src.api.app")
+
+        init_calls = []
+        info_logs = []
+
+        class FakeLoader:
+            def __init__(self):
+                init_calls.append("called")
+
+        predictors_pkg = types.ModuleType("predictors")
+        data_loader_mod = types.ModuleType("predictors.data_loader")
+        data_loader_mod.DataLoader = FakeLoader
+        predictors_pkg.data_loader = data_loader_mod
+        monkeypatch.setitem(sys.modules, "predictors", predictors_pkg)
+        monkeypatch.setitem(sys.modules, "predictors.data_loader", data_loader_mod)
+        monkeypatch.setattr(app_module.logger, "info", info_logs.append)
+
+        with TestClient(create_app()):
+            pass
+
+        assert init_calls == ["called"]
+        assert "🚀 World Cup Betting Insights API starting..." in info_logs
+        assert "✅ Database cache initialized" in info_logs
+        assert "👋 World Cup Betting Insights API shutting down..." in info_logs
+
+    def test_lifespan_logs_warning_when_dataloader_init_fails(self, monkeypatch):
+        import importlib
+        import sys
+        import types
+
+        app_module = importlib.import_module("src.api.app")
+
+        warning_logs = []
+
+        class BrokenLoader:
+            def __init__(self):
+                raise RuntimeError("boom")
+
+        predictors_pkg = types.ModuleType("predictors")
+        data_loader_mod = types.ModuleType("predictors.data_loader")
+        data_loader_mod.DataLoader = BrokenLoader
+        predictors_pkg.data_loader = data_loader_mod
+        monkeypatch.setitem(sys.modules, "predictors", predictors_pkg)
+        monkeypatch.setitem(sys.modules, "predictors.data_loader", data_loader_mod)
+        monkeypatch.setattr(app_module.logger, "warning", warning_logs.append)
+
+        with TestClient(create_app()):
+            pass
+
+        assert warning_logs == ["⚠️  Database initialization skipped: boom"]
+
+    def test_validation_error_handler_returns_expected_payload(self):
+        with TestClient(create_app()) as client:
+            response = client.post("/api/v1/predict", json={"away_team": "Brazil"})
+
+        assert response.status_code == 422
+        assert response.json()["code"] == "VALIDATION_ERROR"
 
 
 class TestAppCreation:
