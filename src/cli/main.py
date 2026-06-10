@@ -22,9 +22,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import DISCLAIMER, DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES
 from predictors.prediction_engine import PredictionEngine, MatchPrediction
 from predictors.team_stats import TeamData, MatchContext
-from scrapers.betano_scraper import BetanoScraper
-from scrapers.betclic_scraper import BetclicScraper
-from scrapers.solverde_scraper import SolverdeScraper
+from src.scrapers.betano_scraper import BetanoScraper
+from src.scrapers.betclic_scraper import BetclicScraper
+from src.scrapers.solverde_scraper import SolverdeScraper
 from utils.ev_calculator import (
     analyze_bet,
     find_best_value_bets,
