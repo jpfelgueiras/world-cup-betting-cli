@@ -13,7 +13,7 @@ from ..config import BETTING_SITES
 
 class SolverdeScraper(BaseScraper):
     """Scraper for Solverde.pt"""
-    
+
     def __init__(self):
         config = BETTING_SITES.get('solverde', {})
         super().__init__(
@@ -22,9 +22,9 @@ class SolverdeScraper(BaseScraper):
             base_url=config.get('url', 'https://www.solverde.pt'),
             rate_limit_seconds=config.get('rate_limit_seconds', 5)
         )
-        
+
         self.sports_url = config.get('sports_url', 'https://www.solverde.pt/apostas-desportivas/futebol/')
-    
+
     def get_match_odds(
         self,
         home_team: str,
@@ -38,7 +38,7 @@ class SolverdeScraper(BaseScraper):
             raise
         except Exception as e:
             raise ScraperError(f"Error scraping Solverde for {home_team} vs {away_team}: {str(e)}")
-    
+
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """Get odds for all upcoming matches"""
         try:
@@ -48,7 +48,7 @@ class SolverdeScraper(BaseScraper):
             return self._get_mock_upcoming_matches(days_ahead)
         except Exception as e:
             raise ScraperError(f"Error getting upcoming matches from Solverde: {str(e)}")
-    
+
     def _create_mock_odds(
         self,
         home_team: str,
@@ -57,21 +57,21 @@ class SolverdeScraper(BaseScraper):
     ) -> OddsData:
         """Create mock odds with Solverde-style variations"""
         import random
-        
+
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
-        
+
         # Solverde odds patterns
         base_home = random.uniform(1.78, 3.55)
         base_draw = random.uniform(3.05, 4.1)
         base_away = random.uniform(1.78, 3.55)
-        
+
         total_implied = (1/base_home + 1/base_draw + 1/base_away)
         margin = 1.055
         home_win = round((1/base_home) / total_implied * margin, 2)
         draw = round((1/base_draw) / total_implied * margin, 2)
         away_win = round((1/base_away) / total_implied * margin, 2)
-        
+
         return OddsData(
             match_id=f"solverde_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
             home_team=home_team,
@@ -88,11 +88,11 @@ class SolverdeScraper(BaseScraper):
             btts_no=round(random.uniform(1.68, 2.22), 2),
             url=f"{self.base_url}/apostas/futebol/{home_team}-{away_team}",
         )
-    
+
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """Generate mock upcoming matches"""
         import random
-        
+
         teams = [
             ('Portugal', 'Brazil'),
             ('Spain', 'Germany'),
@@ -103,13 +103,13 @@ class SolverdeScraper(BaseScraper):
             ('Morocco', 'Japan'),
             ('USA', 'Mexico'),
         ]
-        
+
         matches = []
         today = datetime.now()
-        
+
         for i, (home, away) in enumerate(teams):
             match_date = today + timedelta(days=i+1)
             odds = self._create_mock_odds(home, away, match_date)
             matches.append(odds)
-        
+
         return matches

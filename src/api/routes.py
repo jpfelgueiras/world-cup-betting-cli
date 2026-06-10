@@ -49,7 +49,7 @@ def get_scrapers(site: str = "all"):
     from ..scrapers.betano_scraper import BetanoScraper
     from ..scrapers.betclic_scraper import BetclicScraper
     from ..scrapers.solverde_scraper import SolverdeScraper
-    
+
     scrapers = []
     if site == "all" or site == "betano":
         scrapers.append(BetanoScraper())
@@ -57,7 +57,7 @@ def get_scrapers(site: str = "all"):
         scrapers.append(BetclicScraper())
     if site == "all" or site == "solverde":
         scrapers.append(SolverdeScraper())
-    
+
     return scrapers
 
 
@@ -65,7 +65,7 @@ def get_scrapers(site: str = "all"):
 async def health_check():
     """
     Health check endpoint.
-    
+
     Returns status of all components:
     - API server
     - Bookmaker integrations
@@ -73,7 +73,7 @@ async def health_check():
     - Database connection
     """
     from src import __version__
-    
+
     bookmaker_statuses = []
     for site_key in ["betano", "betclic", "solverde"]:
         status = BookmakerStatus(
@@ -84,7 +84,7 @@ async def health_check():
             status="operational"
         )
         bookmaker_statuses.append(status)
-    
+
     return HealthResponse(
         version=__version__,
         bookmakers=bookmaker_statuses,
@@ -110,10 +110,10 @@ async def predict_match(
 ):
     """
     Analyze a specific match and find value bets.
-    
+
     Compares AI-generated probabilities against odds from Portuguese bookmakers
     to identify bets with positive expected value (EV).
-    
+
     **Example:**
     ```json
     {
@@ -127,14 +127,14 @@ async def predict_match(
         # Create mock team data (in production, fetch from data sources)
         home_data = _create_mock_team_data(request.home_team)
         away_data = _create_mock_team_data(request.away_team)
-        
+
         # Generate prediction
         prediction = engine.predict_match(home_data, away_data)
-        
+
         # Get odds from scrapers
         scrapers = get_scrapers(request.site.value)
         all_odds = []
-        
+
         for scraper in scrapers:
             try:
                 odds = scraper.get_match_odds(
@@ -146,24 +146,24 @@ async def predict_match(
                     all_odds.append(odds)
             except Exception:
                 continue  # Skip unavailable scrapers
-        
+
         if not all_odds:
             raise HTTPException(
                 status_code=404,
                 detail=f"No odds available for {request.home_team} vs {request.away_team}"
             )
-        
+
         # Calculate market averages
         market_avg = _calculate_market_averages(all_odds)
-        
+
         # Generate recommendations
         recommendations = _generate_recommendations(
             prediction, all_odds, market_avg, config.min_ev, config.min_confidence
         )
-        
+
         # Filter value bets based on risk tolerance
         value_bets = _filter_by_risk_tolerance(recommendations, config.risk_tolerance)
-        
+
         # Build response
         response = MatchAnalysisResponse(
             match_id=f"{request.home_team.lower()}_{request.away_team.lower()}_{datetime.now().strftime('%Y%m%d')}",
@@ -211,9 +211,9 @@ async def predict_match(
                 "analysis_timestamp": datetime.now().isoformat(),
             }
         )
-        
+
         return response
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -236,13 +236,13 @@ async def scan_matches(
 ):
     """
     Scan upcoming matches for value bets.
-    
+
     Analyzes all available matches within the specified date range
     and returns those with value bets matching your criteria.
     """
     if request is None:
         request = ScanRequest()
-    
+
     # Determine date range
     start_date = request.start_date or datetime.now()
     if request.end_date:
@@ -250,13 +250,13 @@ async def scan_matches(
     else:
         from datetime import timedelta
         end_date = start_date + timedelta(days=request.days_ahead)
-    
+
     # Get scrapers
     scrapers = get_scrapers(request.site.value)
-    
+
     # Collect all upcoming matches
     all_matches = {}
-    
+
     for scraper in scrapers:
         try:
             matches = scraper.get_upcoming_matches(days_ahead=request.days_ahead)
@@ -267,37 +267,37 @@ async def scan_matches(
                 all_matches[key]['odds'].append(match)
         except Exception:
             continue  # Skip failed scrapers
-    
+
     # Analyze each match
     scan_results = []
     total_value_bets = 0
-    
+
     for match_key, data in all_matches.items():
         match = data['match']
         odds_list = data['odds']
-        
+
         # Create team data
         home_data = _create_mock_team_data(match.home_team)
         away_data = _create_mock_team_data(match.away_team)
-        
+
         # Generate prediction
         prediction = engine.predict_match(home_data, away_data)
-        
+
         # Calculate market averages
         market_avg = _calculate_market_averages(odds_list)
-        
+
         # Generate recommendations
         recommendations = _generate_recommendations(
             prediction, odds_list, market_avg, config.min_ev, config.min_confidence
         )
-        
+
         # Filter value bets
         value_bets = [r for r in recommendations if r.is_value_bet]
-        
+
         if value_bets:
             total_value_bets += len(value_bets)
             best_bet = max(value_bets, key=lambda x: x.ev_percentage)
-            
+
             result = ScanMatchResult(
                 match_id=match.match_id,
                 home_team=match.home_team,
@@ -317,7 +317,7 @@ async def scan_matches(
                 ) if best_bet else None
             )
             scan_results.append(result)
-    
+
     return ScanResponse(
         scan_date=datetime.now(),
         total_matches=len(all_matches),
@@ -344,14 +344,14 @@ async def scan_matches(
 async def list_bookmakers():
     """
     List all available bookmakers and their status.
-    
+
     Returns information about each integrated Portuguese betting site:
     - Enabled/disabled status
     - Rate limits
     - Current operational status
     """
     from src.config import BETTING_SITES
-    
+
     statuses = []
     for site_key, config in BETTING_SITES.items():
         status = BookmakerStatus(
@@ -362,7 +362,7 @@ async def list_bookmakers():
             status="operational" if config.get('enabled', False) else "disabled"
         )
         statuses.append(status)
-    
+
     return statuses
 
 
@@ -374,7 +374,7 @@ async def list_bookmakers():
 async def get_config():
     """
     Get current library/API configuration.
-    
+
     Returns active settings for:
     - EV thresholds
     - Confidence thresholds
@@ -382,12 +382,12 @@ async def get_config():
     - Cache settings
     """
     from src.config import DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES
-    
+
     enabled_sites = [
         key for key, config in BETTING_SITES.items()
         if config.get('enabled', False)
     ]
-    
+
     return LibraryConfig(
         min_ev=DEFAULT_MIN_EV,
         min_confidence=DEFAULT_MIN_CONFIDENCE,
@@ -406,7 +406,7 @@ async def get_config():
 async def update_config(new_config: LibraryConfig):
     """
     Update library/API configuration.
-    
+
     **Note:** In production, this would persist to a config file or database.
     For now, changes are temporary and apply only to current session.
     """
@@ -421,7 +421,7 @@ def _create_mock_team_data(team_name: str):
     """Create mock team data (replace with real data fetching in production)"""
     import random
     from ..predictors.team_stats import TeamData
-    
+
     return TeamData(
         name=team_name,
         fifa_ranking=random.randint(1, 50),
@@ -443,13 +443,13 @@ def _create_mock_team_data(team_name: str):
 def _calculate_market_averages(odds_list: list) -> dict:
     """Calculate average odds across bookmakers"""
     from ..utils.ev_calculator import calculate_market_average
-    
+
     home_odds = [o.home_win for o in odds_list if o.home_win]
     draw_odds = [o.draw for o in odds_list if o.draw]
     away_odds = [o.away_win for o in odds_list if o.away_win]
     over_odds = [o.over_2_5 for o in odds_list if o.over_2_5]
     btts_odds = [o.btts_yes for o in odds_list if o.btts_yes]
-    
+
     return {
         'home_win': calculate_market_average(home_odds) if home_odds else None,
         'draw': calculate_market_average(draw_odds) if draw_odds else None,
@@ -463,9 +463,9 @@ def _calculate_market_averages(odds_list: list) -> dict:
 def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_confidence):
     """Generate bet recommendations"""
     from ..utils.ev_calculator import analyze_bet
-    
+
     recommendations = []
-    
+
     for odds in odds_list:
         # 1X2 markets
         if odds.home_win:
@@ -481,7 +481,7 @@ def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_con
                 min_confidence=min_confidence
             )
             recommendations.append(rec)
-        
+
         if odds.draw:
             rec = analyze_bet(
                 market="1X2 - Draw",
@@ -495,7 +495,7 @@ def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_con
                 min_confidence=min_confidence
             )
             recommendations.append(rec)
-        
+
         if odds.away_win:
             rec = analyze_bet(
                 market="1X2 - Away Win",
@@ -509,7 +509,7 @@ def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_con
                 min_confidence=min_confidence
             )
             recommendations.append(rec)
-        
+
         # Over/Under 2.5
         if odds.over_2_5:
             rec = analyze_bet(
@@ -524,7 +524,7 @@ def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_con
                 min_confidence=min_confidence
             )
             recommendations.append(rec)
-        
+
         # BTTS
         if odds.btts_yes:
             rec = analyze_bet(
@@ -539,14 +539,14 @@ def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_con
                 min_confidence=min_confidence
             )
             recommendations.append(rec)
-    
+
     return recommendations
 
 
 def _filter_by_risk_tolerance(recommendations, risk_tolerance: RiskTolerance):
     """Filter recommendations based on risk tolerance"""
     from ..utils.ev_calculator import find_best_value_bets
-    
+
     # Adjust thresholds based on risk tolerance
     if risk_tolerance == RiskTolerance.CONSERVATIVE:
         min_ev = 8.0
@@ -557,5 +557,5 @@ def _filter_by_risk_tolerance(recommendations, risk_tolerance: RiskTolerance):
     else:  # MODERATE
         min_ev = 5.0
         min_confidence = 60.0
-    
+
     return find_best_value_bets(recommendations, min_ev, min_confidence)

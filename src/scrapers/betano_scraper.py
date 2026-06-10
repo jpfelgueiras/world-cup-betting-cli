@@ -25,7 +25,7 @@ from ..config import BETTING_SITES
 
 class BetanoScraper(BaseScraper):
     """Scraper for Betano.pt"""
-    
+
     def __init__(self):
         config = BETTING_SITES.get('betano', {})
         super().__init__(
@@ -34,9 +34,9 @@ class BetanoScraper(BaseScraper):
             base_url=config.get('url', 'https://www.betano.pt'),
             rate_limit_seconds=config.get('rate_limit_seconds', 5)
         )
-        
+
         self.sports_url = config.get('sports_url', 'https://www.betano.pt/sport/')
-    
+
     def get_match_odds(
         self,
         home_team: str,
@@ -45,7 +45,7 @@ class BetanoScraper(BaseScraper):
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
-        
+
         NOTE: This is a skeleton implementation. Real scraping would require:
         - Navigating to football section
         - Finding the specific match
@@ -53,25 +53,25 @@ class BetanoScraper(BaseScraper):
         """
         # Mock implementation for demonstration
         return self._create_mock_odds(home_team, away_team, match_date)
-    
+
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """
         Get odds for all upcoming matches within specified days.
         """
         matches = []
-        
+
         try:
             # Navigate to football section
             url = f"{self.sports_url}football"
             response = self._make_request(url)
-            
+
             # Parse HTML (real implementation would extract actual matches)
             soup = BeautifulSoup(response.text, 'lxml')
-            
+
             # Find match elements (selectors would need to be updated based on actual site structure)
             # This is pseudocode - actual selectors depend on Betano's HTML structure
             match_elements = soup.select('.match-item, .event-row, [data-match-id]')
-            
+
             for elem in match_elements[:50]:  # Limit to first 50 matches
                 try:
                     odds = self._parse_match_element(elem)
@@ -79,20 +79,20 @@ class BetanoScraper(BaseScraper):
                         matches.append(odds)
                 except Exception:
                     continue
-            
+
             return matches
-            
+
         except ScraperError as e:
             # Return mock data if scraping fails
             print(f"Scraping failed, using mock data: {e}")
             return self._get_mock_upcoming_matches(days_ahead)
         except Exception as e:
             raise ScraperError(f"Error getting upcoming matches from Betano: {str(e)}")
-    
+
     def _parse_match_element(self, elem) -> Optional[OddsData]:
         """
         Parse a match element to extract odds.
-        
+
         Real implementation would extract:
         - Team names
         - Match date/time
@@ -100,7 +100,7 @@ class BetanoScraper(BaseScraper):
         """
         # Placeholder - actual implementation depends on site structure
         return None
-    
+
     def _create_mock_odds(
         self,
         home_team: str,
@@ -108,16 +108,16 @@ class BetanoScraper(BaseScraper):
         match_date: Optional[datetime] = None
     ) -> OddsData:
         """Create mock odds data for demonstration"""
-        
+
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
-        
+
         # Simple deterministic odds based on team name lengths
         # Always produces valid odds > 1.0
         base_home = 1.80 + (len(home_team) % 10) * 0.15
         base_away = 2.00 + (len(away_team) % 10) * 0.15
         base_draw = 3.20
-        
+
         return OddsData(
             match_id=f"betano_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
             home_team=home_team,
@@ -134,11 +134,11 @@ class BetanoScraper(BaseScraper):
             btts_no=2.05,
             url=f"{self.base_url}/sport/football/{home_team}-{away_team}",
         )
-    
+
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """Generate mock upcoming matches for demonstration"""
         import random
-        
+
         teams = [
             ('Portugal', 'Brazil'),
             ('Spain', 'Germany'),
@@ -149,15 +149,15 @@ class BetanoScraper(BaseScraper):
             ('Morocco', 'Japan'),
             ('USA', 'Mexico'),
         ]
-        
+
         matches = []
         today = datetime.now()
-        
+
         for i, (home, away) in enumerate(teams):
             match_date = today + timedelta(days=i+1)
             odds = self._create_mock_odds(home, away, match_date)
             matches.append(odds)
-        
+
         return matches
 
 

@@ -6,14 +6,14 @@ in your own projects.
 
 Example usage:
     from src.library import BettingInsights
-    
+
     # Initialize
     insights = BettingInsights(min_ev=5.0, min_confidence=60.0)
-    
+
     # Analyze a match
     result = insights.analyze_match("Portugal", "Brazil")
     print(f"Value bets found: {len(result.value_bets)}")
-    
+
     # Scan upcoming matches
     scan_results = insights.scan_upcoming_matches(days_ahead=7)
     print(f"Total value bets: {scan_results.total_value_bets}")
@@ -44,32 +44,32 @@ class MatchAnalysisResult:
     home_team: str
     away_team: str
     match_date: Optional[datetime] = None
-    
+
     # Probabilities
     home_win_prob: float = 0.0
     draw_prob: float = 0.0
     away_win_prob: float = 0.0
     over_2_5_prob: float = 0.0
     btts_prob: float = 0.0
-    
+
     # Confidence levels
     home_confidence: float = 0.0
     draw_confidence: float = 0.0
     away_confidence: float = 0.0
-    
+
     # Market averages
     market_avg_home: Optional[float] = None
     market_avg_draw: Optional[float] = None
     market_avg_away: Optional[float] = None
-    
+
     # Value bets
     value_bets: List[BetRecommendation] = field(default_factory=list)
-    
+
     # Analysis metadata
     key_factors: List[str] = field(default_factory=list)
     num_bookmakers: int = 0
     analysis_timestamp: datetime = field(default_factory=datetime.now)
-    
+
     @property
     def most_likely_outcome(self) -> str:
         """Get the most likely outcome"""
@@ -79,18 +79,18 @@ class MatchAnalysisResult:
             ("away", self.away_win_prob),
         ]
         return max(probs, key=lambda x: x[1])[0]
-    
+
     @property
     def has_value_bets(self) -> bool:
         """Check if there are any value bets"""
         return len(self.value_bets) > 0
-    
+
     def get_best_value_bet(self) -> Optional[BetRecommendation]:
         """Get the best value bet by EV"""
         if not self.value_bets:
             return None
         return max(self.value_bets, key=lambda x: x.ev_percentage)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -139,7 +139,7 @@ class ScanResult:
     matches_with_value_bets: int = 0
     total_value_bets: int = 0
     matches: List[MatchAnalysisResult] = field(default_factory=list)
-    
+
     @property
     def all_value_bets(self) -> List[BetRecommendation]:
         """Get all value bets from all matches"""
@@ -147,13 +147,13 @@ class ScanResult:
         for match in self.matches:
             all_bets.extend(match.value_bets)
         return all_bets
-    
+
     def get_top_value_bets(self, limit: int = 10) -> List[BetRecommendation]:
         """Get top N value bets across all matches"""
         all_bets = self.all_value_bets
         sorted_bets = sorted(all_bets, key=lambda x: x.ev_percentage, reverse=True)
         return sorted_bets[:limit]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -168,23 +168,23 @@ class ScanResult:
 class BettingInsights:
     """
     Main library interface for programmatic access.
-    
+
     Provides methods to:
     - Analyze individual matches
     - Scan upcoming matches for value bets
     - Get bookmaker information
     - Configure analysis parameters
-    
+
     Example:
         insights = BettingInsights(min_ev=5.0, min_confidence=60.0)
         result = insights.analyze_match("Portugal", "Brazil")
-        
+
         if result.has_value_bets:
             best_bet = result.get_best_value_bet()
             print(f"Best bet: {best_bet.market} @ {best_bet.site_name}")
             print(f"EV: {best_bet.ev_percentage:.1f}%")
     """
-    
+
     def __init__(
         self,
         min_ev: float = DEFAULT_MIN_EV,
@@ -194,7 +194,7 @@ class BettingInsights:
     ):
         """
         Initialize the betting insights engine.
-        
+
         Args:
             min_ev: Minimum expected value threshold (percentage)
             min_confidence: Minimum confidence threshold (percentage)
@@ -204,17 +204,17 @@ class BettingInsights:
         self.min_ev = min_ev
         self.min_confidence = min_confidence
         self.cache_enabled = cache_enabled
-        
+
         # Initialize prediction engine
         self.engine = PredictionEngine()
-        
+
         # Initialize scrapers based on enabled sites
         if enabled_sites is None:
             enabled_sites = [
                 key for key, config in BETTING_SITES.items()
                 if config.get('enabled', False)
             ]
-        
+
         self.scrapers = []
         if 'betano' in enabled_sites:
             self.scrapers.append(BetanoScraper())
@@ -222,7 +222,7 @@ class BettingInsights:
             self.scrapers.append(BetclicScraper())
         if 'solverde' in enabled_sites:
             self.scrapers.append(SolverdeScraper())
-        
+
         # Initialize cache
         if cache_enabled:
             try:
@@ -233,7 +233,7 @@ class BettingInsights:
                 self.cache_enabled = False
         else:
             self.data_loader = None
-    
+
     def analyze_match(
         self,
         home_team: str,
@@ -244,48 +244,48 @@ class BettingInsights:
     ) -> MatchAnalysisResult:
         """
         Analyze a specific match for value bets.
-        
+
         Args:
             home_team: Home team name
             away_team: Away team name
             match_date: Optional match date
             min_ev: Override minimum EV threshold
             min_confidence: Override minimum confidence threshold
-        
+
         Returns:
             MatchAnalysisResult with probabilities and value bets
-        
+
         Raises:
             ValueError: If no odds available from any bookmaker
         """
         # Use overrides or defaults
         ev_threshold = min_ev if min_ev is not None else self.min_ev
         conf_threshold = min_confidence if min_confidence is not None else self.min_confidence
-        
+
         # Create team data (in production, fetch from real sources)
         home_data = self._create_team_data(home_team)
         away_data = self._create_team_data(away_team)
-        
+
         # Generate prediction
         prediction = self.engine.predict_match(home_data, away_data)
-        
+
         # Get odds from scrapers
         all_odds = self._get_match_odds(home_team, away_team, match_date)
-        
+
         if not all_odds:
             raise ValueError(f"No odds available for {home_team} vs {away_team}")
-        
+
         # Calculate market averages
         market_avg = self._calculate_market_averages(all_odds)
-        
+
         # Generate recommendations
         recommendations = self._generate_recommendations(
             prediction, all_odds, market_avg, ev_threshold, conf_threshold
         )
-        
+
         # Filter value bets
         value_bets = find_best_value_bets(recommendations, ev_threshold, conf_threshold)
-        
+
         # Build result
         result = MatchAnalysisResult(
             home_team=home_team,
@@ -306,13 +306,13 @@ class BettingInsights:
             key_factors=prediction.key_factors,
             num_bookmakers=len(all_odds),
         )
-        
+
         # Log prediction for tracking
         if self.data_loader:
             self.data_loader.log_prediction(home_team, away_team, prediction)
-        
+
         return result
-    
+
     def scan_upcoming_matches(
         self,
         days_ahead: int = 7,
@@ -321,21 +321,21 @@ class BettingInsights:
     ) -> ScanResult:
         """
         Scan upcoming matches for value bets.
-        
+
         Args:
             days_ahead: Number of days to scan ahead
             min_ev: Override minimum EV threshold
             min_confidence: Override minimum confidence threshold
-        
+
         Returns:
             ScanResult with all matches containing value bets
         """
         ev_threshold = min_ev if min_ev is not None else self.min_ev
         conf_threshold = min_confidence if min_confidence is not None else self.min_confidence
-        
+
         # Collect all upcoming matches
         all_matches = {}
-        
+
         for scraper in self.scrapers:
             try:
                 matches = scraper.get_upcoming_matches(days_ahead=days_ahead)
@@ -346,15 +346,15 @@ class BettingInsights:
                     all_matches[key]['odds'].append(match)
             except Exception:
                 continue  # Skip failed scrapers
-        
+
         # Analyze each match
         matches_with_bets = []
         total_value_bets = 0
-        
+
         for match_key, data in all_matches.items():
             match = data['match']
             odds_list = data['odds']
-            
+
             # Analyze match
             try:
                 result = self.analyze_match(
@@ -364,24 +364,24 @@ class BettingInsights:
                     ev_threshold,
                     conf_threshold
                 )
-                
+
                 if result.has_value_bets:
                     total_value_bets += len(result.value_bets)
                     matches_with_bets.append(result)
             except Exception:
                 continue  # Skip failed analyses
-        
+
         return ScanResult(
             total_matches=len(all_matches),
             matches_with_value_bets=len(matches_with_bets),
             total_value_bets=total_value_bets,
             matches=matches_with_bets,
         )
-    
+
     def get_bookmakers(self) -> List[Dict[str, Any]]:
         """
         Get list of configured bookmakers.
-        
+
         Returns:
             List of bookmaker information dictionaries
         """
@@ -395,7 +395,7 @@ class BettingInsights:
                 'rate_limit_seconds': config.get('rate_limit_seconds', 5),
             })
         return result
-    
+
     def update_config(
         self,
         min_ev: Optional[float] = None,
@@ -404,7 +404,7 @@ class BettingInsights:
     ):
         """
         Update configuration parameters.
-        
+
         Args:
             min_ev: New minimum EV threshold
             min_confidence: New minimum confidence threshold
@@ -414,7 +414,7 @@ class BettingInsights:
             self.min_ev = min_ev
         if min_confidence is not None:
             self.min_confidence = min_confidence
-        
+
         if enabled_sites is not None:
             self.scrapers = []
             if 'betano' in enabled_sites:
@@ -423,11 +423,11 @@ class BettingInsights:
                 self.scrapers.append(BetclicScraper())
             if 'solverde' in enabled_sites:
                 self.scrapers.append(SolverdeScraper())
-    
+
     def _create_team_data(self, team_name: str) -> TeamData:
         """Create team data (mock implementation)"""
         import random
-        
+
         return TeamData(
             name=team_name,
             fifa_ranking=random.randint(1, 50),
@@ -444,11 +444,11 @@ class BettingInsights:
             clean_sheets=random.randint(3, 7),
             rest_days=random.randint(2, 7),
         )
-    
+
     def _get_match_odds(self, home_team: str, away_team: str, match_date: Optional[datetime]):
         """Get odds from all configured scrapers"""
         all_odds = []
-        
+
         for scraper in self.scrapers:
             try:
                 # Try cache first
@@ -457,21 +457,21 @@ class BettingInsights:
                     if cached:
                         all_odds.extend(cached)
                         continue
-                
+
                 # Fetch from scraper
                 odds = scraper.get_match_odds(home_team, away_team, match_date)
                 if odds:
                     all_odds.append(odds)
-                    
+
                     # Cache the odds
                     if self.cache_enabled and self.data_loader:
                         self.data_loader.cache_odds(odds)
-                        
+
             except Exception:
                 continue  # Skip failed scrapers
-        
+
         return all_odds
-    
+
     def _calculate_market_averages(self, odds_list: list) -> dict:
         """Calculate market average odds"""
         home_odds = [o.home_win for o in odds_list if o.home_win]
@@ -479,7 +479,7 @@ class BettingInsights:
         away_odds = [o.away_win for o in odds_list if o.away_win]
         over_odds = [o.over_2_5 for o in odds_list if o.over_2_5]
         btts_odds = [o.btts_yes for o in odds_list if o.btts_yes]
-        
+
         return {
             'home_win': calculate_market_average(home_odds) if home_odds else None,
             'draw': calculate_market_average(draw_odds) if draw_odds else None,
@@ -488,11 +488,11 @@ class BettingInsights:
             'btts_yes': calculate_market_average(btts_odds) if btts_odds else None,
             'num_bookmakers': len(odds_list),
         }
-    
+
     def _generate_recommendations(self, prediction, odds_list, market_avg, min_ev, min_conf):
         """Generate bet recommendations"""
         recommendations = []
-        
+
         for odds in odds_list:
             # 1X2 markets
             if odds.home_win:
@@ -508,7 +508,7 @@ class BettingInsights:
                     min_confidence=min_conf
                 )
                 recommendations.append(rec)
-            
+
             if odds.draw:
                 rec = analyze_bet(
                     market="1X2 - Draw",
@@ -522,7 +522,7 @@ class BettingInsights:
                     min_confidence=min_conf
                 )
                 recommendations.append(rec)
-            
+
             if odds.away_win:
                 rec = analyze_bet(
                     market="1X2 - Away Win",
@@ -536,7 +536,7 @@ class BettingInsights:
                     min_confidence=min_conf
                 )
                 recommendations.append(rec)
-            
+
             # Over/Under 2.5
             if odds.over_2_5:
                 rec = analyze_bet(
@@ -551,7 +551,7 @@ class BettingInsights:
                     min_confidence=min_conf
                 )
                 recommendations.append(rec)
-            
+
             # BTTS
             if odds.btts_yes:
                 rec = analyze_bet(
@@ -566,7 +566,7 @@ class BettingInsights:
                     min_confidence=min_conf
                 )
                 recommendations.append(rec)
-        
+
         return recommendations
 
 
@@ -578,17 +578,17 @@ def create_insights(
 ) -> BettingInsights:
     """
     Create a BettingInsights instance with custom configuration.
-    
+
     This is a convenience function for quick setup.
-    
+
     Args:
         min_ev: Minimum EV threshold (default: 5.0)
         min_confidence: Minimum confidence threshold (default: 60.0)
         **kwargs: Additional arguments passed to BettingInsights
-    
+
     Returns:
         Configured BettingInsights instance
-    
+
     Example:
         insights = create_insights(min_ev=8.0, min_confidence=70.0)
     """

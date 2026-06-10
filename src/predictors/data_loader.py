@@ -18,23 +18,23 @@ from .team_stats import TeamData
 
 class DataLoader:
     """Load team data from various sources"""
-    
+
     def __init__(self, cache_dir: Optional[str] = None):
         if cache_dir is None:
             cache_dir = Path(__file__).parent.parent.parent / 'data' / 'cache'
-        
+
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize SQLite cache
         self.db_path = self.cache_dir / 'odds_history.db'
         self._init_database()
-    
+
     def _init_database(self):
         """Initialize SQLite database for caching"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Create tables
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS odds_cache (
@@ -55,7 +55,7 @@ class DataLoader:
                 UNIQUE(match_id, site)
             )
         ''')
-        
+
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS predictions_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,17 +69,17 @@ class DataLoader:
                 created_at TEXT
             )
         ''')
-        
+
         conn.commit()
         conn.close()
-    
+
     def cache_odds(self, odds_data: Any):
         """Cache odds data to SQLite"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            INSERT OR REPLACE INTO odds_cache 
+            INSERT OR REPLACE INTO odds_cache
             (match_id, site, home_team, away_team, match_date,
              home_win, draw, away_win, over_2_5, under_2_5, btts_yes, btts_no, cached_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -98,10 +98,10 @@ class DataLoader:
             odds_data.btts_no,
             datetime.now().isoformat(),
         ))
-        
+
         conn.commit()
         conn.close()
-    
+
     def get_cached_odds(
         self,
         home_team: str,
@@ -110,22 +110,22 @@ class DataLoader:
     ) -> List[Any]:
         """Get recently cached odds for a match"""
         from scrapers.base_scraper import OddsData
-        
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cutoff = (datetime.now() - timedelta(hours=max_age_hours)).isoformat()
-        
+
         cursor.execute('''
-            SELECT * FROM odds_cache 
+            SELECT * FROM odds_cache
             WHERE home_team LIKE ? AND away_team LIKE ?
             AND cached_at > ?
             ORDER BY cached_at DESC
         ''', (f'%{home_team}%', f'%{away_team}%', cutoff))
-        
+
         rows = cursor.fetchall()
         conn.close()
-        
+
         results = []
         for row in rows:
             odds = OddsData(
@@ -143,9 +143,9 @@ class DataLoader:
                 btts_no=row[12],
             )
             results.append(odds)
-        
+
         return results
-    
+
     def log_prediction(
         self,
         home_team: str,
@@ -156,9 +156,9 @@ class DataLoader:
         """Log prediction for later accuracy tracking"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            INSERT INTO predictions_log 
+            INSERT INTO predictions_log
             (home_team, away_team, match_date, home_prob, draw_prob, away_prob, actual_result, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
@@ -171,32 +171,32 @@ class DataLoader:
             actual_result,
             datetime.now().isoformat(),
         ))
-        
+
         conn.commit()
         conn.close()
-    
+
     def get_prediction_accuracy(self, days_back: int = 30) -> Dict[str, float]:
         """Calculate prediction accuracy over recent period"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cutoff = (datetime.now() - timedelta(days=days_back)).isoformat()
-        
+
         cursor.execute('''
-            SELECT COUNT(*), 
+            SELECT COUNT(*),
                    SUM(CASE WHEN actual_result = 'home' AND home_prob > draw_prob AND home_prob > away_prob THEN 1 ELSE 0 END),
                    SUM(CASE WHEN actual_result = 'draw' AND draw_prob > home_prob AND draw_prob > away_prob THEN 1 ELSE 0 END),
                    SUM(CASE WHEN actual_result = 'away' AND away_prob > home_prob AND away_prob > draw_prob THEN 1 ELSE 0 END)
-            FROM predictions_log 
+            FROM predictions_log
             WHERE created_at > ? AND actual_result IS NOT NULL
         ''', (cutoff,))
-        
+
         row = cursor.fetchone()
         conn.close()
-        
+
         total = row[0] or 0
         correct = (row[1] or 0) + (row[2] or 0) + (row[3] or 0)
-        
+
         return {
             'total_predictions': total,
             'correct_predictions': correct,
@@ -210,21 +210,21 @@ class DataLoader:
 class FBrefLoader:
     """
     Load team data from FBref.com
-    
+
     Note: This is a skeleton implementation.
     Real scraping would require:
     - Proper HTML parsing
     - Rate limiting
     - Handling anti-bot measures
     """
-    
+
     def __init__(self):
         self.base_url = "https://fbref.com"
-    
+
     def get_team_stats(self, team_name: str) -> Optional[TeamData]:
         """
         Get team statistics from FBref.
-        
+
         Returns TeamData with stats or None if not found.
         """
         # Skeleton implementation
@@ -232,9 +232,9 @@ class FBrefLoader:
         # 1. Search for team on FBref
         # 2. Scrape season stats page
         # 3. Parse table data
-        
+
         return None
-    
+
     def get_match_history(
         self,
         team_name: str,
@@ -243,7 +243,7 @@ class FBrefLoader:
         """Get last N matches for a team"""
         # Would scrape match history from FBref
         return []
-    
+
     def get_head_to_head(
         self,
         team_a: str,
@@ -257,36 +257,36 @@ class FBrefLoader:
 class FootballDataLoader:
     """
     Load data from Football-Data.org API
-    
+
     Requires API key from https://www.football-data.org/
     """
-    
+
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key
         self.base_url = "https://api.football-data.org/v4"
-    
+
     def get_team_data(self, team_id: int) -> Optional[TeamData]:
         """Get team data from API"""
         if not self.api_key:
             return None
-        
+
         import requests
-        
+
         try:
             response = requests.get(
                 f"{self.base_url}/teams/{team_id}",
                 headers={'X-Auth-Token': self.api_key}
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 # Parse into TeamData
                 return self._parse_team_response(data)
         except Exception:
             pass
-        
+
         return None
-    
+
     def _parse_team_response(self, data: Dict) -> TeamData:
         """Parse API response into TeamData"""
         # Implementation depends on API structure

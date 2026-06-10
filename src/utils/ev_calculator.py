@@ -23,9 +23,9 @@ class BetRecommendation:
 def calculate_ev(probability: float, decimal_odds: float) -> float:
     """
     Calculate Expected Value (EV) for a bet.
-    
+
     EV = (Probability × Decimal Odds) - 1
-    
+
     Returns EV as a percentage (e.g., 0.085 = 8.5%)
     """
     ev = (probability * decimal_odds) - 1
@@ -35,7 +35,7 @@ def calculate_ev(probability: float, decimal_odds: float) -> float:
 def calculate_implied_probability(decimal_odds: float) -> float:
     """
     Calculate implied probability from decimal odds.
-    
+
     Implied Probability = 1 / Decimal Odds
     """
     if decimal_odds <= 1.0:
@@ -53,7 +53,7 @@ def calculate_market_average(odds_list: List[float]) -> float:
 def calculate_odds_discrepancy(site_odds: float, market_average: float) -> float:
     """
     Calculate percentage discrepancy between site odds and market average.
-    
+
     Positive = site offers better odds than average
     """
     if market_average == 0:
@@ -69,7 +69,7 @@ def is_value_bet(
 ) -> bool:
     """
     Determine if a bet qualifies as a value bet.
-    
+
     Criteria:
     - EV > minimum threshold (default 5%)
     - Confidence > minimum threshold (default 60%)
@@ -90,12 +90,12 @@ def analyze_bet(
 ) -> BetRecommendation:
     """
     Perform complete EV analysis for a single bet.
-    
+
     Returns a BetRecommendation with all calculated metrics.
     """
     ev_percentage = calculate_ev(model_probability, odds)
     is_value = is_value_bet(ev_percentage, confidence, min_ev, min_confidence)
-    
+
     return BetRecommendation(
         market=market,
         site=site,
@@ -116,14 +116,14 @@ def find_best_value_bets(
 ) -> List[BetRecommendation]:
     """
     Filter and sort recommendations by EV (highest first).
-    
+
     Only returns bets that meet the value criteria.
     """
     value_bets = [
         rec for rec in recommendations
         if is_value_bet(rec.ev_percentage, rec.confidence, min_ev, min_confidence)
     ]
-    
+
     # Sort by EV descending
     return sorted(value_bets, key=lambda x: x.ev_percentage, reverse=True)
 
@@ -146,24 +146,24 @@ def calculate_confidence_from_variance(
 ) -> float:
     """
     Calculate model confidence based on prediction variance and sample size.
-    
+
     Lower variance + larger sample = higher confidence
-    
+
     Returns confidence as percentage (0-100)
     """
     import numpy as np
-    
+
     if len(predictions) < 2:
         return 50.0  # Default confidence with insufficient data
-    
+
     variance = np.var(predictions)
     std_dev = np.std(predictions)
-    
+
     # Base confidence from sample size (logarithmic scaling)
     size_factor = min(100, 30 + (10 * np.log10(max(1, sample_size))))
-    
+
     # Reduce confidence based on variance (higher variance = lower confidence)
     variance_penalty = min(40, std_dev * 100)
-    
+
     confidence = max(0, min(100, size_factor - variance_penalty))
     return confidence

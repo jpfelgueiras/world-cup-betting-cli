@@ -13,7 +13,7 @@ from ..config import BETTING_SITES
 
 class BetclicScraper(BaseScraper):
     """Scraper for Betclic.pt"""
-    
+
     def __init__(self):
         config = BETTING_SITES.get('betclic', {})
         super().__init__(
@@ -22,9 +22,9 @@ class BetclicScraper(BaseScraper):
             base_url=config.get('url', 'https://www.betclic.pt'),
             rate_limit_seconds=config.get('rate_limit_seconds', 5)
         )
-        
+
         self.sports_url = config.get('sports_url', 'https://www.betclic.pt/futebol-s1/')
-    
+
     def get_match_odds(
         self,
         home_team: str,
@@ -39,7 +39,7 @@ class BetclicScraper(BaseScraper):
             raise
         except Exception as e:
             raise ScraperError(f"Error scraping Betclic for {home_team} vs {away_team}: {str(e)}")
-    
+
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """Get odds for all upcoming matches"""
         try:
@@ -50,7 +50,7 @@ class BetclicScraper(BaseScraper):
             return self._get_mock_upcoming_matches(days_ahead)
         except Exception as e:
             raise ScraperError(f"Error getting upcoming matches from Betclic: {str(e)}")
-    
+
     def _create_mock_odds(
         self,
         home_team: str,
@@ -59,21 +59,21 @@ class BetclicScraper(BaseScraper):
     ) -> OddsData:
         """Create mock odds with Betclic-style variations"""
         import random
-        
+
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
-        
+
         # Betclic often has slightly different odds than Betano
         base_home = random.uniform(1.75, 3.6)
         base_draw = random.uniform(3.1, 4.2)
         base_away = random.uniform(1.75, 3.6)
-        
+
         total_implied = (1/base_home + 1/base_draw + 1/base_away)
         margin = 1.06  # Slightly higher margin
         home_win = round((1/base_home) / total_implied * margin, 2)
         draw = round((1/base_draw) / total_implied * margin, 2)
         away_win = round((1/base_away) / total_implied * margin, 2)
-        
+
         return OddsData(
             match_id=f"betclic_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
             home_team=home_team,
@@ -90,11 +90,11 @@ class BetclicScraper(BaseScraper):
             btts_no=round(random.uniform(1.65, 2.25), 2),
             url=f"{self.base_url}/futebol/{home_team}-{away_team}",
         )
-    
+
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """Generate mock upcoming matches"""
         import random
-        
+
         teams = [
             ('Portugal', 'Brazil'),
             ('Spain', 'Germany'),
@@ -105,13 +105,13 @@ class BetclicScraper(BaseScraper):
             ('Morocco', 'Japan'),
             ('USA', 'Mexico'),
         ]
-        
+
         matches = []
         today = datetime.now()
-        
+
         for i, (home, away) in enumerate(teams):
             match_date = today + timedelta(days=i+1)
             odds = self._create_mock_odds(home, away, match_date)
             matches.append(odds)
-        
+
         return matches

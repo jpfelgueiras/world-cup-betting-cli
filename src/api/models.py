@@ -50,7 +50,7 @@ class MatchPredictionRequest(BaseModel):
     away_team: str = Field(..., min_length=1, description="Away team name")
     match_date: Optional[datetime] = Field(None, description="Optional match date")
     site: SiteType = Field(SiteType.ALL, description="Betting site to analyze")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -70,7 +70,7 @@ class ScanRequest(BaseModel):
     min_ev: float = Field(5.0, ge=0, le=100, description="Minimum EV threshold %")
     min_confidence: float = Field(60.0, ge=0, le=100, description="Minimum confidence %")
     site: SiteType = Field(SiteType.ALL, description="Betting site filter")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -91,7 +91,7 @@ class AnalysisConfig(BaseModel):
         default_factory=lambda: [MarketType.MATCH_WINNER, MarketType.OVER_UNDER_25, MarketType.BTTS],
         description="Markets to analyze"
     )
-    
+
     @field_validator('min_ev')
     @classmethod
     def validate_min_ev(cls, v):
@@ -109,7 +109,7 @@ class TeamProbabilities(BaseModel):
     away_win: float = Field(..., ge=0, le=1, description="Away win probability")
     over_2_5: float = Field(..., ge=0, le=1, description="Over 2.5 goals probability")
     btts: float = Field(..., ge=0, le=1, description="Both teams to score probability")
-    
+
     @field_validator('home_win', 'draw', 'away_win')
     @classmethod
     def validate_probabilities(cls, values):
@@ -154,16 +154,16 @@ class MatchAnalysisResponse(BaseModel):
     away_team: str = Field(..., description="Away team name")
     match_date: Optional[datetime] = Field(None, description="Match date/time")
     tournament_stage: Optional[str] = Field(None, description="Tournament stage")
-    
+
     probabilities: TeamProbabilities = Field(..., description="Model probabilities")
     confidence: ConfidenceLevels = Field(..., description="Confidence levels")
     market_averages: MarketAverage = Field(..., description="Market average odds")
-    
+
     value_bets: List[ValueBet] = Field(..., description="Recommended value bets")
     key_factors: List[str] = Field(..., description="Key analysis factors")
-    
+
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -279,7 +279,7 @@ class ErrorResponse(BaseModel):
     message: str
     code: str
     details: Optional[Dict[str, Any]] = None
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -299,7 +299,7 @@ class LibraryConfig(BaseModel):
     cache_enabled: bool = True
     cache_ttl_hours: int = 1
     rate_limit_enabled: bool = True
-    
+
     class Config:
         json_schema_extra = {
             "example": {
