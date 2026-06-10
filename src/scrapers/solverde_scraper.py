@@ -101,7 +101,7 @@ class SolverdeScraper(BaseScraper):
         today = datetime.now()
 
         for i, (home, away) in enumerate(teams):
-            match_date = today + timedelta(days=i+1)
+            match_date = today + timedelta(days=i + 1)
             odds = self._create_mock_odds(home, away, match_date)
             matches.append(odds)
 

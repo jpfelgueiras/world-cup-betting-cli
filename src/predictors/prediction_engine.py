@@ -175,8 +175,8 @@ class PredictionEngine:
         """
         Calculate expected goals for each team using strength metrics.
         """
-        home =  # noqa: F841 home_stats.team_data
-        away =  # noqa: F841 away_stats.team_data
+        home = home_stats.team_data  # noqa: F841
+        away = away_stats.team_data  # noqa: F841
 
         # Base expected goals from attack/defense strengths
         base_home_xg = (
