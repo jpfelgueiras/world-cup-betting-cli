@@ -2,7 +2,7 @@
 Expected Value (EV) Calculator and utilities
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import List
 from dataclasses import dataclass
 
 
