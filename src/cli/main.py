@@ -377,7 +377,7 @@ def create_mock_team_data(team_name: str) -> TeamData:
 
 def calculate_market_averages(odds_list: List) -> dict:
     """Calculate average odds across all bookmakers"""
-    from utils.ev_calculator import calculate_market_average
+    from src.utils.ev_calculator import calculate_market_average
 
     home_odds = [o.home_win for o in odds_list if o.home_win]
     draw_odds = [o.draw for o in odds_list if o.draw]
@@ -403,7 +403,7 @@ def generate_recommendations(
     min_confidence: float,
 ) -> List[BetRecommendation]:
     """Generate bet recommendations based on prediction and odds"""
-    from utils.ev_calculator import analyze_bet
+    from src.utils.ev_calculator import analyze_bet
 
     recommendations = []
 

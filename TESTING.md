@@ -84,27 +84,36 @@ mypy src/ --ignore-missing-imports --no-strict-optional
 
 ## What CI currently does
 
-The workflow in `.github/workflows/tests.yml` has two jobs.
+The repository now uses two GitHub Actions workflows plus Dependabot.
 
-### Test job
+### CI workflow
 
-Runs on Python:
+`.github/workflows/ci.yml` runs on both `push` and `pull_request`, and cancels superseded runs for the same branch or PR.
 
-- 3.10
-- 3.11
-- 3.12
-- 3.13
+It covers:
 
-It installs dependencies, runs pytest with coverage, and uploads coverage artifacts.
-
-### Lint job
-
-Runs:
-
+- pytest across Python 3.10, 3.11, 3.12, and 3.13
+- pip dependency caching through `actions/setup-python`
+- coverage XML + HTML artifact upload on every matrix run
+- a 70% coverage floor enforced on Python 3.12
 - flake8
 - black check
 - isort check
 - mypy
+- `actionlint` validation for the workflows themselves
+
+### Security workflow
+
+`.github/workflows/security.yml` runs on `push`, `pull_request`, a weekly schedule, and manual dispatch.
+
+It covers:
+
+- `pip-audit` dependency vulnerability scanning
+- GitHub CodeQL analysis for Python
+
+### Dependabot
+
+`.github/dependabot.yml` keeps both GitHub Actions and Python dependencies fresh on a weekly cadence.
 
 ## Practical verification tips
 
@@ -170,10 +179,12 @@ pip install -r requirements.txt
 pip install -e .
 PYTHONPATH=src pytest tests/test_ev_calculator.py tests/test_library.py -v
 PYTHONPATH=src pytest tests/ -v
+PYTHONPATH=src pytest tests/ --cov=src --cov-fail-under=70
 black src/ tests/
 isort src/ tests/
 flake8 src/ tests/ --max-line-length=120 --extend-ignore=E203
 mypy src/ --ignore-missing-imports --no-strict-optional
+actionlint
 ```
 
 For documentation-only changes, you can usually stop after:
