@@ -7,7 +7,7 @@ Note: These tests use mock data since real scraping requires live sites.
 
 import pytest
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from src.scrapers.base_scraper import (
     BaseScraper,
@@ -210,7 +210,6 @@ class TestBaseScraper:
 
     def test_rotate_user_agent(self, mock_scraper):
         """Test user agent rotation"""
-        initial_agent = mock_scraper.session.headers.get('User-Agent')
 
         mock_scraper._rotate_user_agent()
         new_agent = mock_scraper.session.headers.get('User-Agent')
@@ -452,7 +451,7 @@ class TestBetanoScraper:
         assert odds.away_win > 1.0
 
         # Implied probabilities should sum to > 1 (bookmaker margin)
-        implied_sum = (1/odds.home_win + 1/odds.draw + 1/odds.away_win)
+        implied_sum = (1 / odds.home_win + 1 / odds.draw + 1 / odds.away_win)
         assert implied_sum > 1.0
         # Note: removed upper bound check as it can vary with random odds
 

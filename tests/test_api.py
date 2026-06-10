@@ -546,17 +546,17 @@ class TestAppCreation:
 
     def test_create_app_with_custom_version(self):
         """Test creating app with custom version"""
-        custom_app =  # noqa: F841 create_app(version="2.0.0")
+        custom_app = create_app(version="2.0.0")  # noqa: F841
         assert custom_app.version == "2.0.0"
 
     def test_create_app_debug_mode(self):
         """Test creating app in debug mode"""
-        custom_app =  # noqa: F841 create_app(debug=True)
+        custom_app = create_app(debug=True)  # noqa: F841
         assert custom_app.debug is True
 
     def test_create_app_custom_docs_url(self):
         """Test creating app with custom docs URL"""
-        custom_app =  # noqa: F841 create_app(docs_url="/swagger")
+        custom_app = create_app(docs_url="/swagger")  # noqa: F841
         # Would need to test with TestClient to verify
 
     def test_default_app_exists(self):

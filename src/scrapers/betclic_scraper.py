@@ -58,16 +58,16 @@ class BetclicScraper(BaseScraper):
         match_date: Optional[datetime] = None
     ) -> OddsData:
         """Create mock odds data for demonstration"""
-        
+
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
-        
+
         # Deterministic odds based on team name lengths
         # Includes bookmaker margin (implied probabilities sum > 1.0)
         base_home = 1.55 + (len(home_team) % 8) * 0.11
         base_away = 1.75 + (len(away_team) % 8) * 0.11
         base_draw = 2.85
-        
+
         return OddsData(
             match_id=f"betclic_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
             home_team=home_team,

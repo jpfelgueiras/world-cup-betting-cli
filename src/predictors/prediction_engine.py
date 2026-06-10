@@ -180,13 +180,13 @@ class PredictionEngine:
 
         # Base expected goals from attack/defense strengths
         base_home_xg = (
-            home_stats.attack_strength * 0.015 +
-            (100 - away_stats.defense_strength) * 0.010
+            home_stats.attack_strength * 0.015
+            + (100 - away_stats.defense_strength) * 0.010
         )
 
         base_away_xg = (
-            away_stats.attack_strength * 0.012 +
-            (100 - home_stats.defense_strength) * 0.008
+            away_stats.attack_strength * 0.012
+            + (100 - home_stats.defense_strength) * 0.008
         )
 
         # Apply form factor

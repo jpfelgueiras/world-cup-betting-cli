@@ -109,9 +109,9 @@ class TeamStats:
         elo_component = min(100, (data.elo_rating - 1000) / 2)
 
         self.attack_strength = (
-            goal_component * 0.4 +
-            xg_component * 0.3 +
-            ((ranking_component + elo_component) / 2) * 0.3
+            goal_component * 0.4
+            + xg_component * 0.3
+            + ((ranking_component + elo_component) / 2) * 0.3
         )
 
     def _compute_defense_strength(self):
@@ -131,17 +131,17 @@ class TeamStats:
             cs_component = 50
 
         self.defense_strength = (
-            goal_component * 0.4 +
-            xg_component * 0.3 +
-            cs_component * 0.3
+            goal_component * 0.4
+            + xg_component * 0.3
+            + cs_component * 0.3
         )
 
     def _compute_overall_strength(self):
         """Calculate overall team strength"""
         # Weighted average of attack and defense
         self.overall_strength = (
-            self.attack_strength * 0.55 +
-            self.defense_strength * 0.45
+            self.attack_strength * 0.55
+            + self.defense_strength * 0.45
         )
 
     def _compute_form_factor(self):
