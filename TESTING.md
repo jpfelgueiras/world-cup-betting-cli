@@ -9,6 +9,7 @@ The repository contains unit and interface-level tests for the main building blo
 - `tests/test_ev_calculator.py` — expected value helpers
 - `tests/test_prediction_engine.py` — prediction engine and derived team stats
 - `tests/test_scrapers.py` — scraper base behavior and bookmaker adapters
+- `tests/test_scraper_integration_real_fixtures.py` — fixture-driven integration coverage for the real scraper classes
 - `tests/test_api.py` — FastAPI endpoints and response models
 - `tests/test_library.py` — `BettingInsights` facade and result objects
 
@@ -159,7 +160,7 @@ If API or typing checks fail unexpectedly, make sure the environment matches `re
 
 ### Scraper-related failures
 
-Tests should mostly be stable because scraper behavior is largely mocked. If they fail, it is more likely due to interface or regression issues than network availability.
+Scraper CI is designed to stay stable: parser-level integration tests run against captured HTML/JSON fixtures rather than live bookmaker pages. If they fail, that usually means a parser contract changed, fixture coverage is incomplete, or a normalization regression slipped in — not that an external site happened to be down.
 
 ## Suggested contributor workflow
 
@@ -168,7 +169,7 @@ A sensible lightweight workflow for changes is:
 ```bash
 pip install -r requirements.txt
 pip install -e .
-PYTHONPATH=src pytest tests/test_ev_calculator.py tests/test_library.py -v
+PYTHONPATH=src pytest tests/test_ev_calculator.py tests/test_library.py tests/test_scraper_integration_real_fixtures.py -v
 PYTHONPATH=src pytest tests/ -v
 black src/ tests/
 isort src/ tests/
