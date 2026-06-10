@@ -51,20 +51,8 @@ class BetanoScraper(BaseScraper):
         - Finding the specific match
         - Extracting odds from dynamic content
         """
-        try:
-            # In real implementation:
-            # 1. Navigate to sports betting section
-            # 2. Filter by date and league
-            # 3. Find matching teams
-            # 4. Extract odds
-            
-            # Mock implementation for demonstration
-            return self._create_mock_odds(home_team, away_team, match_date)
-            
-        except ScraperError:
-            raise
-        except Exception as e:
-            raise ScraperError(f"Error scraping Betano for {home_team} vs {away_team}: {str(e)}")
+        # Mock implementation for demonstration
+        return self._create_mock_odds(home_team, away_team, match_date)
     
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """
@@ -120,19 +108,15 @@ class BetanoScraper(BaseScraper):
         match_date: Optional[datetime] = None
     ) -> OddsData:
         """Create mock odds data for demonstration"""
-        import hashlib
         
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
         
-        # Generate deterministic odds based on team names (consistent across Python versions)
-        seed_str = f"{home_team}:{away_team}"
-        seed = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16) % 1000
-        
-        # Use simple modulo arithmetic for deterministic "random" values
-        home_win = round(1.80 + (seed % 150) / 100.0, 2)  # 1.80 - 3.30
-        draw = round(3.10 + ((seed // 10) % 70) / 100.0, 2)  # 3.10 - 3.80
-        away_win = round(2.00 + ((seed // 100) % 150) / 100.0, 2)  # 2.00 - 3.50
+        # Simple deterministic odds based on team name lengths
+        # Always produces valid odds > 1.0
+        base_home = 1.80 + (len(home_team) % 10) * 0.15
+        base_away = 2.00 + (len(away_team) % 10) * 0.15
+        base_draw = 3.20
         
         return OddsData(
             match_id=f"betano_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
@@ -141,13 +125,13 @@ class BetanoScraper(BaseScraper):
             match_date=match_date,
             site='betano',
             site_name=self.site_name,
-            home_win=home_win,
-            draw=draw,
-            away_win=away_win,
-            over_2_5=round(1.70 + ((seed // 1000) % 40) / 100.0, 2),
-            under_2_5=round(1.70 + ((seed // 10000) % 40) / 100.0, 2),
-            btts_yes=round(1.60 + ((seed // 100000) % 40) / 100.0, 2),
-            btts_no=round(1.70 + ((seed // 1000000) % 50) / 100.0, 2),
+            home_win=round(base_home, 2),
+            draw=round(base_draw, 2),
+            away_win=round(base_away, 2),
+            over_2_5=1.85,
+            under_2_5=1.95,
+            btts_yes=1.75,
+            btts_no=2.05,
             url=f"{self.base_url}/sport/football/{home_team}-{away_team}",
         )
     
