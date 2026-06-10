@@ -14,9 +14,17 @@ from src.api.models import ConfidenceLevels  # noqa: F401
 from src.api.models import HealthResponse  # noqa: F401
 from src.api.models import MatchAnalysisResponse  # noqa: F401
 from src.api.models import ScanResponse  # noqa: F401
-from src.api.models import (AnalysisConfig, LibraryConfig, MarketAverage,
-                            MatchPredictionRequest, RiskTolerance, ScanRequest,
-                            SiteType, TeamProbabilities, ValueBet)
+from src.api.models import (
+    AnalysisConfig,
+    LibraryConfig,
+    MarketAverage,
+    MatchPredictionRequest,
+    RiskTolerance,
+    ScanRequest,
+    SiteType,
+    TeamProbabilities,
+    ValueBet,
+)
 
 
 class TestAPIModels:
