@@ -198,7 +198,7 @@ class MatchContext:
         self.venue = venue
         self.tournament_stage = tournament_stage
         self.is_must_win_home = is_must_win_home
-        self.is_must_win_away = is_must_win_home
+        self.is_must_win_away = is_must_win_away
         
         # Compute rest days
         today = datetime.now()

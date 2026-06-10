@@ -10,6 +10,7 @@ Uses statistical modeling based on:
 """
 
 import numpy as np
+import math
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 
@@ -250,7 +251,7 @@ class PredictionEngine:
         """Poisson probability mass function"""
         if k < 0:
             return 0.0
-        return (np.exp(-lam) * (lam ** k)) / np.math.factorial(k)
+        return (np.exp(-lam) * (lam ** k)) / math.factorial(k)
     
     def _calculate_over_2_5_probability(
         self,

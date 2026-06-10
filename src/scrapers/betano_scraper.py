@@ -126,16 +126,16 @@ class BetanoScraper(BaseScraper):
             match_date = datetime.now() + timedelta(days=3)
         
         # Generate realistic-looking odds with some variance
-        base_home = random.uniform(1.8, 3.5)
-        base_draw = random.uniform(3.0, 4.0)
-        base_away = random.uniform(1.8, 3.5)
+        home_win = round(random.uniform(1.80, 3.50), 2)
+        draw = round(random.uniform(3.00, 4.00), 2)
+        away_win = round(random.uniform(1.80, 3.50), 2)
         
-        # Normalize to ensure bookmaker margin
-        total_implied = (1/base_home + 1/base_draw + 1/base_away)
-        margin = 1.05  # 5% bookmaker margin
-        home_win = round((1/base_home) / total_implied * margin, 2)
-        draw = round((1/base_draw) / total_implied * margin, 2)
-        away_win = round((1/base_away) / total_implied * margin, 2)
+        # Ensure bookmaker margin (implied probabilities sum > 1)
+        implied_sum = (1/home_win + 1/draw + 1/away_win)
+        if implied_sum < 1.0:
+            # Adjust to ensure bookmaker has an edge
+            home_win = round(home_win * 0.95, 2)
+            away_win = round(away_win * 0.95, 2)
         
         return OddsData(
             match_id=f"betano_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",

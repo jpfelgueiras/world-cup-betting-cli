@@ -322,7 +322,7 @@ class TestBaseScraper:
     def test_normalize_team_name_removes_accents(self, mock_scraper):
         """Test team name normalization removes accents"""
         normalized = mock_scraper.normalize_team_name("São Paulo")
-        assert "Sao" in normalized
+        assert "sao" in normalized
         assert "ã" not in normalized
     
     def test_normalize_team_name_lowercase(self, mock_scraper):
