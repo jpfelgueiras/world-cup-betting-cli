@@ -25,7 +25,10 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 World Cup Betting Insights API starting...")
 
     try:
-        from predictors.data_loader import DataLoader
+        try:
+            from predictors.data_loader import DataLoader
+        except ImportError:
+            from src.predictors.data_loader import DataLoader
 
         DataLoader()  # Initialize cache
         logger.info("✅ Database cache initialized")

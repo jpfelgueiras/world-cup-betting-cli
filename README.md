@@ -660,15 +660,16 @@ PYTHONPATH=src pytest tests/ --cov=src --cov-report=term-missing
 
 ### Existing CI
 
-GitHub Actions runs:
-- tests across Python 3.10–3.13
-- coverage export
-- flake8
-- black check
-- isort check
-- mypy
+GitHub Actions now runs:
+- a single CI workflow on both `push` and `pull_request`
+- automatic cancellation of superseded runs for the same branch/PR
+- tests across Python 3.10–3.13 with pip caching
+- coverage artifact upload on every matrix run, plus a 70% coverage floor on Python 3.12
+- flake8, black, isort, mypy, and `actionlint` workflow validation
+- a separate security workflow with `pip-audit`, CodeQL analysis, and a weekly scheduled scan
+- Dependabot updates for both Python dependencies and GitHub Actions
 
-See `.github/workflows/tests.yml`.
+See `.github/workflows/ci.yml`, `.github/workflows/security.yml`, and `.github/dependabot.yml`.
 
 For more detail, read [TESTING.md](TESTING.md).
 
