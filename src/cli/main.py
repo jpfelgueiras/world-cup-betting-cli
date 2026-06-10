@@ -7,7 +7,7 @@ Main command-line interface using Click framework.
 import json
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import click
 from rich import box
@@ -343,11 +343,11 @@ def get_scrapers(site: str) -> List[BaseScraper]:
     scrapers: List[BaseScraper] = []
 
     if site == "all" or site == "betano":
-        scrapers.append(BetanoScraper())
+        scrapers.append(cast(BaseScraper, BetanoScraper()))
     if site == "all" or site == "betclic":
-        scrapers.append(BetclicScraper())
+        scrapers.append(cast(BaseScraper, BetclicScraper()))
     if site == "all" or site == "solverde":
-        scrapers.append(SolverdeScraper())
+        scrapers.append(cast(BaseScraper, SolverdeScraper()))
 
     return scrapers
 

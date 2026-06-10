@@ -5,6 +5,7 @@ Creates and configures the FastAPI application for the REST API.
 """
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -16,6 +17,24 @@ from .routes import router as api_router
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application startup and shutdown lifecycle."""
+    logger.info("🚀 World Cup Betting Insights API starting...")
+
+    try:
+        from predictors.data_loader import DataLoader
+
+        DataLoader()  # Initialize cache
+        logger.info("✅ Database cache initialized")
+    except Exception as e:
+        logger.warning(f"⚠️  Database initialization skipped: {e}")
+
+    yield
+
+    logger.info("👋 World Cup Betting Insights API shutting down...")
 
 
 def create_app(
@@ -76,6 +95,7 @@ You must be 18+ to gamble in Portugal.
         debug=debug,
         docs_url=docs_url,
         redoc_url=redoc_url,
+        lifespan=lifespan,
         openapi_tags=[
             {
                 "name": "Health",
@@ -115,7 +135,7 @@ You must be 18+ to gamble in Portugal.
     ):
         """Handle validation errors with detailed response"""
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content={
                 "error": "ValidationError",
                 "message": "Request validation failed",
@@ -140,27 +160,6 @@ You must be 18+ to gamble in Portugal.
                 "code": "INTERNAL_ERROR",
             },
         )
-
-    # Startup event
-    @app.on_event("startup")
-    async def startup_event():
-        """Initialize application on startup"""
-        logger.info("🚀 World Cup Betting Insights API starting...")
-
-        # Initialize database/cache
-        try:
-            from predictors.data_loader import DataLoader
-
-            DataLoader()  # Initialize cache
-            logger.info("✅ Database cache initialized")
-        except Exception as e:
-            logger.warning(f"⚠️  Database initialization skipped: {e}")
-
-    # Shutdown event
-    @app.on_event("shutdown")
-    async def shutdown_event():
-        """Cleanup on shutdown"""
-        logger.info("👋 World Cup Betting Insights API shutting down...")
 
     # Root endpoint
     @app.get("/", tags=["Root"])
