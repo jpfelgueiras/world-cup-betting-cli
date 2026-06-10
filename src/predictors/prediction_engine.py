@@ -11,7 +11,7 @@ Uses statistical modeling based on:
 
 import numpy as np
 import math
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from dataclasses import dataclass
 
 from .team_stats import TeamStats, TeamData, MatchContext
