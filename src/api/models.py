@@ -2,14 +2,16 @@
 Pydantic models for API request/response validation
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class MarketType(str, Enum):
     """Supported betting market types"""
+
     MATCH_WINNER = "1X2"
     OVER_UNDER_25 = "OU25"
     BTTS = "BTTS"
@@ -19,6 +21,7 @@ class MarketType(str, Enum):
 
 class SiteType(str, Enum):
     """Supported Portuguese betting sites"""
+
     BETANO = "betano"
     BETCLIC = "betclic"
     ESC = "esc"
@@ -30,6 +33,7 @@ class SiteType(str, Enum):
 
 class RiskTolerance(str, Enum):
     """Risk tolerance levels"""
+
     CONSERVATIVE = "conservative"
     MODERATE = "moderate"
     AGGRESSIVE = "aggressive"
@@ -37,6 +41,7 @@ class RiskTolerance(str, Enum):
 
 class OutputFormat(str, Enum):
     """Output format options"""
+
     TABLE = "table"
     JSON = "json"
     CSV = "csv"
@@ -44,8 +49,10 @@ class OutputFormat(str, Enum):
 
 # Request Models
 
+
 class MatchPredictionRequest(BaseModel):
     """Request model for match prediction"""
+
     home_team: str = Field(..., min_length=1, description="Home team name")
     away_team: str = Field(..., min_length=1, description="Away team name")
     match_date: Optional[datetime] = Field(None, description="Optional match date")
@@ -57,18 +64,21 @@ class MatchPredictionRequest(BaseModel):
                 "home_team": "Portugal",
                 "away_team": "Brazil",
                 "match_date": "2026-06-15T20:00:00Z",
-                "site": "all"
+                "site": "all",
             }
         }
 
 
 class ScanRequest(BaseModel):
     """Request model for scanning upcoming matches"""
+
     start_date: Optional[datetime] = Field(None, description="Start date for scan")
     end_date: Optional[datetime] = Field(None, description="End date for scan")
     days_ahead: int = Field(7, ge=1, le=30, description="Days to scan ahead")
     min_ev: float = Field(5.0, ge=0, le=100, description="Minimum EV threshold %")
-    min_confidence: float = Field(60.0, ge=0, le=100, description="Minimum confidence %")
+    min_confidence: float = Field(
+        60.0, ge=0, le=100, description="Minimum confidence %"
+    )
     site: SiteType = Field(SiteType.ALL, description="Betting site filter")
 
     class Config:
@@ -77,40 +87,51 @@ class ScanRequest(BaseModel):
                 "days_ahead": 7,
                 "min_ev": 5.0,
                 "min_confidence": 60.0,
-                "site": "all"
+                "site": "all",
             }
         }
 
 
 class AnalysisConfig(BaseModel):
     """Configuration for bet analysis"""
+
     min_ev: float = Field(5.0, ge=0, le=100, description="Minimum EV threshold %")
-    min_confidence: float = Field(60.0, ge=0, le=100, description="Minimum confidence %")
-    risk_tolerance: RiskTolerance = Field(RiskTolerance.MODERATE, description="Risk tolerance level")
+    min_confidence: float = Field(
+        60.0, ge=0, le=100, description="Minimum confidence %"
+    )
+    risk_tolerance: RiskTolerance = Field(
+        RiskTolerance.MODERATE, description="Risk tolerance level"
+    )
     markets: List[MarketType] = Field(
-        default_factory=lambda: [MarketType.MATCH_WINNER, MarketType.OVER_UNDER_25, MarketType.BTTS],
-        description="Markets to analyze"
+        default_factory=lambda: [
+            MarketType.MATCH_WINNER,
+            MarketType.OVER_UNDER_25,
+            MarketType.BTTS,
+        ],
+        description="Markets to analyze",
     )
 
-    @field_validator('min_ev')
+    @field_validator("min_ev")
     @classmethod
     def validate_min_ev(cls, v):
         if v < 0 or v > 100:
-            raise ValueError('min_ev must be between 0 and 100')
+            raise ValueError("min_ev must be between 0 and 100")
         return v
 
 
 # Response Models
 
+
 class TeamProbabilities(BaseModel):
     """Team win/draw/loss probabilities"""
+
     home_win: float = Field(..., ge=0, le=1, description="Home win probability")
     draw: float = Field(..., ge=0, le=1, description="Draw probability")
     away_win: float = Field(..., ge=0, le=1, description="Away win probability")
     over_2_5: float = Field(..., ge=0, le=1, description="Over 2.5 goals probability")
     btts: float = Field(..., ge=0, le=1, description="Both teams to score probability")
 
-    @field_validator('home_win', 'draw', 'away_win')
+    @field_validator("home_win", "draw", "away_win")
     @classmethod
     def validate_probabilities(cls, values):
         # Note: This validator runs on individual fields, not the whole set
@@ -119,6 +140,7 @@ class TeamProbabilities(BaseModel):
 
 class ConfidenceLevels(BaseModel):
     """Confidence levels for predictions"""
+
     home_win: float = Field(..., ge=0, le=100, description="Home win confidence %")
     draw: float = Field(..., ge=0, le=100, description="Draw confidence %")
     away_win: float = Field(..., ge=0, le=100, description="Away win confidence %")
@@ -126,6 +148,7 @@ class ConfidenceLevels(BaseModel):
 
 class MarketAverage(BaseModel):
     """Market average odds across bookmakers"""
+
     home_win: Optional[float] = Field(None, gt=1, description="Average home win odds")
     draw: Optional[float] = Field(None, gt=1, description="Average draw odds")
     away_win: Optional[float] = Field(None, gt=1, description="Average away win odds")
@@ -136,6 +159,7 @@ class MarketAverage(BaseModel):
 
 class ValueBet(BaseModel):
     """A value bet recommendation"""
+
     market: str = Field(..., description="Betting market type")
     site: str = Field(..., description="Betting site identifier")
     site_name: str = Field(..., description="Human-readable site name")
@@ -149,6 +173,7 @@ class ValueBet(BaseModel):
 
 class MatchAnalysisResponse(BaseModel):
     """Complete match analysis response"""
+
     match_id: str = Field(..., description="Unique match identifier")
     home_team: str = Field(..., description="Home team name")
     away_team: str = Field(..., description="Away team name")
@@ -162,7 +187,9 @@ class MatchAnalysisResponse(BaseModel):
     value_bets: List[ValueBet] = Field(..., description="Recommended value bets")
     key_factors: List[str] = Field(..., description="Key analysis factors")
 
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
 
     class Config:
         json_schema_extra = {
@@ -177,20 +204,16 @@ class MatchAnalysisResponse(BaseModel):
                     "draw": 0.26,
                     "away_win": 0.46,
                     "over_2_5": 0.62,
-                    "btts": 0.58
+                    "btts": 0.58,
                 },
-                "confidence": {
-                    "home_win": 65.0,
-                    "draw": 55.0,
-                    "away_win": 72.0
-                },
+                "confidence": {"home_win": 65.0, "draw": 55.0, "away_win": 72.0},
                 "market_averages": {
                     "home_win": 3.20,
                     "draw": 3.40,
                     "away_win": 2.10,
                     "over_2_5": 1.90,
                     "btts_yes": 1.75,
-                    "num_bookmakers": 3
+                    "num_bookmakers": 3,
                 },
                 "value_bets": [
                     {
@@ -202,19 +225,20 @@ class MatchAnalysisResponse(BaseModel):
                         "ev_percentage": 8.5,
                         "confidence": 72.0,
                         "is_value_bet": True,
-                        "reasoning": ["Brazil unbeaten in last 12 matches"]
+                        "reasoning": ["Brazil unbeaten in last 12 matches"],
                     }
                 ],
                 "key_factors": [
                     "Brazil in excellent form (80% last 10)",
-                    "Brazil dominates historical H2H"
-                ]
+                    "Brazil dominates historical H2H",
+                ],
             }
         }
 
 
 class ScanMatchResult(BaseModel):
     """Single match result from scan"""
+
     match_id: str
     home_team: str
     away_team: str
@@ -225,16 +249,22 @@ class ScanMatchResult(BaseModel):
 
 class ScanResponse(BaseModel):
     """Response for match scan operation"""
+
     scan_date: datetime = Field(default_factory=datetime.now)
     total_matches: int = Field(..., description="Total matches scanned")
-    matches_with_value_bets: int = Field(..., description="Matches with at least one value bet")
+    matches_with_value_bets: int = Field(
+        ..., description="Matches with at least one value bet"
+    )
     total_value_bets: int = Field(..., description="Total value bets found")
     matches: List[ScanMatchResult] = Field(..., description="Match results")
-    filters_applied: Dict[str, Any] = Field(default_factory=dict, description="Filters used in scan")
+    filters_applied: Dict[str, Any] = Field(
+        default_factory=dict, description="Filters used in scan"
+    )
 
 
 class OddsData(BaseModel):
     """Odds data from a single bookmaker"""
+
     match_id: str
     home_team: str
     away_team: str
@@ -254,6 +284,7 @@ class OddsData(BaseModel):
 
 class BookmakerStatus(BaseModel):
     """Status of a bookmaker integration"""
+
     site_key: str
     site_name: str
     enabled: bool
@@ -265,6 +296,7 @@ class BookmakerStatus(BaseModel):
 
 class HealthResponse(BaseModel):
     """API health check response"""
+
     status: str = "healthy"
     version: str
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -275,6 +307,7 @@ class HealthResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard error response"""
+
     error: str
     message: str
     code: str
@@ -286,16 +319,19 @@ class ErrorResponse(BaseModel):
                 "error": "ValidationError",
                 "message": "Invalid team name provided",
                 "code": "INVALID_INPUT",
-                "details": {"field": "home_team", "reason": "empty string"}
+                "details": {"field": "home_team", "reason": "empty string"},
             }
         }
 
 
 class LibraryConfig(BaseModel):
     """Configuration for library usage"""
+
     min_ev: float = 5.0
     min_confidence: float = 60.0
-    enabled_sites: List[str] = Field(default_factory=lambda: ["betano", "betclic", "solverde"])
+    enabled_sites: List[str] = Field(
+        default_factory=lambda: ["betano", "betclic", "solverde"]
+    )
     cache_enabled: bool = True
     cache_ttl_hours: int = 1
     rate_limit_enabled: bool = True
@@ -307,6 +343,6 @@ class LibraryConfig(BaseModel):
                 "min_confidence": 60.0,
                 "enabled_sites": ["betano", "betclic"],
                 "cache_enabled": True,
-                "cache_ttl_hours": 1
+                "cache_ttl_hours": 1,
             }
         }
