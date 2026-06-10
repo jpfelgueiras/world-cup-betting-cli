@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class MarketType(str, Enum):
@@ -53,13 +53,8 @@ class OutputFormat(str, Enum):
 class MatchPredictionRequest(BaseModel):
     """Request model for match prediction"""
 
-    home_team: str = Field(..., min_length=1, description="Home team name")
-    away_team: str = Field(..., min_length=1, description="Away team name")
-    match_date: Optional[datetime] = Field(None, description="Optional match date")
-    site: SiteType = Field(SiteType.ALL, description="Betting site to analyze")
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "home_team": "Portugal",
                 "away_team": "Brazil",
@@ -67,10 +62,27 @@ class MatchPredictionRequest(BaseModel):
                 "site": "all",
             }
         }
+    )
+
+    home_team: str = Field(..., min_length=1, description="Home team name")
+    away_team: str = Field(..., min_length=1, description="Away team name")
+    match_date: Optional[datetime] = Field(None, description="Optional match date")
+    site: SiteType = Field(SiteType.ALL, description="Betting site to analyze")
 
 
 class ScanRequest(BaseModel):
     """Request model for scanning upcoming matches"""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "days_ahead": 7,
+                "min_ev": 5.0,
+                "min_confidence": 60.0,
+                "site": "all",
+            }
+        }
+    )
 
     start_date: Optional[datetime] = Field(None, description="Start date for scan")
     end_date: Optional[datetime] = Field(None, description="End date for scan")
@@ -80,16 +92,6 @@ class ScanRequest(BaseModel):
         60.0, ge=0, le=100, description="Minimum confidence %"
     )
     site: SiteType = Field(SiteType.ALL, description="Betting site filter")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "days_ahead": 7,
-                "min_ev": 5.0,
-                "min_confidence": 60.0,
-                "site": "all",
-            }
-        }
 
 
 class AnalysisConfig(BaseModel):
@@ -174,25 +176,8 @@ class ValueBet(BaseModel):
 class MatchAnalysisResponse(BaseModel):
     """Complete match analysis response"""
 
-    match_id: str = Field(..., description="Unique match identifier")
-    home_team: str = Field(..., description="Home team name")
-    away_team: str = Field(..., description="Away team name")
-    match_date: Optional[datetime] = Field(None, description="Match date/time")
-    tournament_stage: Optional[str] = Field(None, description="Tournament stage")
-
-    probabilities: TeamProbabilities = Field(..., description="Model probabilities")
-    confidence: ConfidenceLevels = Field(..., description="Confidence levels")
-    market_averages: MarketAverage = Field(..., description="Market average odds")
-
-    value_bets: List[ValueBet] = Field(..., description="Recommended value bets")
-    key_factors: List[str] = Field(..., description="Key analysis factors")
-
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "match_id": "portugal_vs_brazil_20260615",
                 "home_team": "Portugal",
@@ -234,6 +219,24 @@ class MatchAnalysisResponse(BaseModel):
                 ],
             }
         }
+    )
+
+    match_id: str = Field(..., description="Unique match identifier")
+    home_team: str = Field(..., description="Home team name")
+    away_team: str = Field(..., description="Away team name")
+    match_date: Optional[datetime] = Field(None, description="Match date/time")
+    tournament_stage: Optional[str] = Field(None, description="Tournament stage")
+
+    probabilities: TeamProbabilities = Field(..., description="Model probabilities")
+    confidence: ConfidenceLevels = Field(..., description="Confidence levels")
+    market_averages: MarketAverage = Field(..., description="Market average odds")
+
+    value_bets: List[ValueBet] = Field(..., description="Recommended value bets")
+    key_factors: List[str] = Field(..., description="Key analysis factors")
+
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
 
 
 class ScanMatchResult(BaseModel):
@@ -308,13 +311,8 @@ class HealthResponse(BaseModel):
 class ErrorResponse(BaseModel):
     """Standard error response"""
 
-    error: str
-    message: str
-    code: str
-    details: Optional[Dict[str, Any]] = None
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": "ValidationError",
                 "message": "Invalid team name provided",
@@ -322,10 +320,28 @@ class ErrorResponse(BaseModel):
                 "details": {"field": "home_team", "reason": "empty string"},
             }
         }
+    )
+
+    error: str
+    message: str
+    code: str
+    details: Optional[Dict[str, Any]] = None
 
 
 class LibraryConfig(BaseModel):
     """Configuration for library usage"""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "min_ev": 5.0,
+                "min_confidence": 60.0,
+                "enabled_sites": ["betano", "betclic"],
+                "cache_enabled": True,
+                "cache_ttl_hours": 1,
+            }
+        }
+    )
 
     min_ev: float = 5.0
     min_confidence: float = 60.0
@@ -335,14 +351,3 @@ class LibraryConfig(BaseModel):
     cache_enabled: bool = True
     cache_ttl_hours: int = 1
     rate_limit_enabled: bool = True
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "min_ev": 5.0,
-                "min_confidence": 60.0,
-                "enabled_sites": ["betano", "betclic"],
-                "cache_enabled": True,
-                "cache_ttl_hours": 1,
-            }
-        }
