@@ -58,7 +58,7 @@ You must be 18+ to gamble in Portugal.
 ) -> FastAPI:
     """
     Create and configure the FastAPI application.
-    
+
     Args:
         title: API title
         description: API description (supports Markdown)
@@ -66,11 +66,11 @@ You must be 18+ to gamble in Portugal.
         debug: Enable debug mode
         docs_url: URL for Swagger UI docs
         redoc_url: URL for ReDoc docs
-    
+
     Returns:
         Configured FastAPI application
     """
-    
+
     app = FastAPI(
         title=title,
         description=description,
@@ -97,7 +97,7 @@ You must be 18+ to gamble in Portugal.
             },
         ],
     )
-    
+
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -106,10 +106,10 @@ You must be 18+ to gamble in Portugal.
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Register routes
     app.include_router(api_router)
-    
+
     # Add exception handlers
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -126,12 +126,12 @@ You must be 18+ to gamble in Portugal.
                 }
             },
         )
-    
+
     @app.exception_handler(Exception)
     async def general_exception_handler(request: Request, exc: Exception):
         """Handle unexpected errors"""
         logger.error(f"Unexpected error: {str(exc)}", exc_info=True)
-        
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
@@ -140,13 +140,13 @@ You must be 18+ to gamble in Portugal.
                 "code": "INTERNAL_ERROR",
             },
         )
-    
+
     # Startup event
     @app.on_event("startup")
     async def startup_event():
         """Initialize application on startup"""
         logger.info("🚀 World Cup Betting Insights API starting...")
-        
+
         # Initialize database/cache
         try:
             from predictors.data_loader import DataLoader
@@ -154,19 +154,19 @@ You must be 18+ to gamble in Portugal.
             logger.info("✅ Database cache initialized")
         except Exception as e:
             logger.warning(f"⚠️  Database initialization skipped: {e}")
-    
+
     # Shutdown event
     @app.on_event("shutdown")
     async def shutdown_event():
         """Cleanup on shutdown"""
         logger.info("👋 World Cup Betting Insights API shutting down...")
-    
+
     # Root endpoint
     @app.get("/", tags=["Root"])
     async def root():
         """
         Root endpoint - API information
-        
+
         Returns basic information about the API and links to documentation.
         """
         return {
@@ -177,7 +177,7 @@ You must be 18+ to gamble in Portugal.
             "health": "/api/v1/health",
             "disclaimer": "This API provides betting insights only. No guaranteed wins. 18+",
         }
-    
+
     return app
 
 
@@ -187,7 +187,7 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "src.api.app:app",
         host="0.0.0.0",
