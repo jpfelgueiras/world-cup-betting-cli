@@ -10,5 +10,5 @@ Usage:
     worldcup interactive
 """
 
-__version__ = '0.1.0'
-__author__ = 'OpenClaw'
+__version__ = "0.1.0"
+__author__ = "OpenClaw"
