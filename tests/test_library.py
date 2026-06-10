@@ -4,8 +4,6 @@ Unit tests for Python Library Interface
 Tests the BettingInsights class and related models in src/library.py
 """
 
-from datetime import datetime, timedelta
-
 import pytest
 
 from src.library import (
@@ -498,8 +496,6 @@ class TestBettingInsights:
 
     def test_update_config_enabled_sites(self, insights):
         """Test updating enabled sites configuration"""
-        initial_count = len(insights.scrapers)  # noqa: F841
-
         insights.update_config(enabled_sites=["betano"])
 
         assert len(insights.scrapers) == 1

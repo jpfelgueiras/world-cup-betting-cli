@@ -7,7 +7,6 @@ Main command-line interface using Click framework.
 import json
 import sys
 from datetime import datetime
-from pathlib import Path
 from typing import List, Optional
 
 import click
@@ -16,19 +15,17 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from config import DEFAULT_MIN_CONFIDENCE  # noqa: E402
-from config import BETTING_SITES, DEFAULT_MIN_EV, DISCLAIMER
-from predictors.prediction_engine import MatchPrediction  # noqa: E402
-from predictors.prediction_engine import PredictionEngine
-from predictors.team_stats import TeamData  # noqa: E402
-from scrapers.betano_scraper import BetanoScraper  # noqa: E402
-from scrapers.betclic_scraper import BetclicScraper  # noqa: E402
-from scrapers.solverde_scraper import SolverdeScraper  # noqa: E402
-from utils.ev_calculator import BetRecommendation  # noqa: E402
-from utils.ev_calculator import find_best_value_bets, format_ev_display
+from src.config import BETTING_SITES, DEFAULT_MIN_CONFIDENCE, DEFAULT_MIN_EV, DISCLAIMER
+from src.predictors.prediction_engine import MatchPrediction, PredictionEngine
+from src.predictors.team_stats import TeamData
+from src.scrapers.betano_scraper import BetanoScraper
+from src.scrapers.betclic_scraper import BetclicScraper
+from src.scrapers.solverde_scraper import SolverdeScraper
+from src.utils.ev_calculator import (
+    BetRecommendation,
+    find_best_value_bets,
+    format_ev_display,
+)
 
 console = Console()
 
@@ -217,7 +214,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
     value_bet_count = 0
     engine = PredictionEngine()
 
-    for match_key, data in all_matches.items():
+    for _, data in all_matches.items():
         match = data["match"]
         odds_list = data["odds"]
 
@@ -241,13 +238,15 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
         if value_bets:
             value_bet_count += len(value_bets)
             console.print(
-                f"[bold green]✅ {match.home_team} vs {match.away_team}[/bold green] - {len(value_bets)} value bets found"
+                f"[bold green]✅ {match.home_team} vs {match.away_team}[/bold green]"
+                f" - {len(value_bets)} value bets found"
             )
 
             # Show top value bet
             best = max(value_bets, key=lambda x: x.ev_percentage)
             console.print(
-                f"   Best: {best.market} @ {best.site_name} ({best.odds}) → EV {format_ev_display(best.ev_percentage)}"
+                f"   Best: {best.market} @ {best.site_name} ({best.odds})"
+                f" → EV {format_ev_display(best.ev_percentage)}"
             )
             console.print()
 
@@ -494,7 +493,9 @@ def output_table(
     console.print(
         Panel(
             f"[bold]{prediction.home_team}[/bold] vs [bold]{prediction.away_team}[/bold]\n"
-            f"Model: {prediction.home_win_prob * 100:.1f}% / {prediction.draw_prob * 100:.1f}% / {prediction.away_win_prob * 100:.1f}%\n"
+            f"Model: {prediction.home_win_prob * 100:.1f}% / "
+            f"{prediction.draw_prob * 100:.1f}% / "
+            f"{prediction.away_win_prob * 100:.1f}%\n"
             f"Over 2.5: {prediction.over_2_5_prob * 100:.1f}% | BTTS: {prediction.btts_prob * 100:.1f}%",
             title="📊 Model Prediction",
             box=box.ROUNDED,
