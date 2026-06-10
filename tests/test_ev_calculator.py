@@ -5,7 +5,6 @@ Tests all functions in src/utils/ev_calculator.py
 """
 
 import pytest
-import numpy as np
 
 from src.utils.ev_calculator import (
     calculate_ev,
