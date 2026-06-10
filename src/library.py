@@ -452,30 +452,23 @@ class BettingInsights:
     def _get_match_odds(self, home_team: str, away_team: str, match_date: Optional[datetime]):
         """Get odds from all configured scrapers"""
         all_odds = []
+        
+        print(f"DEBUG: _get_match_odds called with {home_team} vs {away_team}, scrapers={len(self.scrapers)}")
 
         for scraper in self.scrapers:
             try:
-                # Try cache first
-                if self.cache_enabled and self.data_loader:
-                    cached = self.data_loader.get_cached_odds(home_team, away_team)
-                    if cached:
-                        all_odds.extend(cached)
-                        continue
-
+                print(f"DEBUG: Calling {scraper.site_key}.get_match_odds")
                 # Fetch from scraper
                 odds = scraper.get_match_odds(home_team, away_team, match_date)
+                print(f"DEBUG: {scraper.site_key} returned {odds}")
                 if odds:
                     all_odds.append(odds)
 
-                    # Cache the odds
-                    if self.cache_enabled and self.data_loader:
-                        self.data_loader.cache_odds(odds)
-                else:
-                    raise RuntimeError(f"{scraper.site_key}.get_match_odds returned None")
-
             except Exception as e:
+                print(f"DEBUG: {scraper.site_key} raised {type(e).__name__}: {e}")
                 raise  # Re-raise to see the actual error
 
+        print(f"DEBUG: _get_match_odds returning {len(all_odds)} odds")
         return all_odds
 
     def _calculate_market_averages(self, odds_list: list) -> dict:
