@@ -7,7 +7,6 @@ Tests FastAPI routes, models, and app configuration.
 import pytest
 from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
 
 from src.api.app import create_app, app
 from src.api.models import (

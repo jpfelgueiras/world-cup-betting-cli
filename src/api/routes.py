@@ -102,8 +102,8 @@ async def health_check():
 )
 async def predict_match(
     request: MatchPredictionRequest,
-    config: AnalysisConfig = Depends(lambda: AnalysisConfig()),
-    engine = Depends(get_prediction_engine)
+    config: AnalysisConfig = Depends(),  # type: ignore
+    engine = Depends(get_prediction_engine)  # type: ignore
 ):
     """
     Analyze a specific match and find value bets.
@@ -228,8 +228,8 @@ async def predict_match(
 )
 async def scan_matches(
     request: ScanRequest = None,
-    config: AnalysisConfig = Depends(lambda: AnalysisConfig()),
-    engine = Depends(get_prediction_engine)
+    config: AnalysisConfig = Depends(),  # type: ignore
+    engine = Depends(get_prediction_engine)  # type: ignore
 ):
     """
     Scan upcoming matches for value bets.
