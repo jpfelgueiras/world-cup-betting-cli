@@ -14,7 +14,6 @@ For production use, consider:
 - Respecting all legal requirements
 """
 
-import re
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from bs4 import BeautifulSoup

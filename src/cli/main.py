@@ -146,7 +146,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
     # Determine date range
     if date:
         try:
-            start_date = datetime.strptime(date, '%Y-%m-%d')
+            date = datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
