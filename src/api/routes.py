@@ -28,9 +28,7 @@ from .models import (
     BookmakerStatus,
     ErrorResponse,
     LibraryConfig,
-    SiteType,
     RiskTolerance,
-    MarketType,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["betting-insights"])

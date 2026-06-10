@@ -19,14 +19,13 @@ from rich import box
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import DISCLAIMER, DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES
-from predictors.prediction_engine import PredictionEngine, MatchPrediction
-from predictors.team_stats import TeamData
-from scrapers.betano_scraper import BetanoScraper
-from scrapers.betclic_scraper import BetclicScraper
-from scrapers.solverde_scraper import SolverdeScraper
-from utils.ev_calculator import (
-    analyze_bet,
+from config import DISCLAIMER, DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES  # noqa: E402
+from predictors.prediction_engine import PredictionEngine, MatchPrediction  # noqa: E402
+from predictors.team_stats import TeamData  # noqa: E402
+from scrapers.betano_scraper import BetanoScraper  # noqa: E402
+from scrapers.betclic_scraper import BetclicScraper  # noqa: E402
+from scrapers.solverde_scraper import SolverdeScraper  # noqa: E402
+from utils.ev_calculator import (  # noqa: E402
     find_best_value_bets,
     format_ev_display,
     BetRecommendation,
@@ -151,10 +150,10 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
         except ValueError:
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
-        end_date = start_date + timedelta(days=1)  # noqa: F841
+        _end_date = start_date + timedelta(days=1)
     else:
         start_date = datetime.now()
-        end_date = start_date + timedelta(days=days)
+        _end_date = start_date + timedelta(days=days)
 
     # Get scrapers
     scrapers = get_scrapers(site)
