@@ -60,11 +60,11 @@ class SolverdeScraper(BaseScraper):
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
         
-        # Simple deterministic odds based on team name lengths
-        # Always produces valid odds > 1.0
-        base_home = 1.85 + (len(home_team) % 10) * 0.12
-        base_away = 2.05 + (len(away_team) % 10) * 0.12
-        base_draw = 3.25
+        # Deterministic odds based on team name lengths
+        # Includes bookmaker margin (implied probabilities sum > 1.0)
+        base_home = 1.52 + (len(home_team) % 8) * 0.11
+        base_away = 1.72 + (len(away_team) % 8) * 0.11
+        base_draw = 2.82
         
         return OddsData(
             match_id=f"solverde_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
@@ -76,10 +76,10 @@ class SolverdeScraper(BaseScraper):
             home_win=round(base_home, 2),
             draw=round(base_draw, 2),
             away_win=round(base_away, 2),
-            over_2_5=1.92,
-            under_2_5=1.98,
-            btts_yes=1.82,
-            btts_no=2.08,
+            over_2_5=1.68,
+            under_2_5=1.78,
+            btts_yes=1.58,
+            btts_no=1.88,
             url=f"{self.base_url}/apostas/futebol/{home_team}-{away_team}",
         )
 

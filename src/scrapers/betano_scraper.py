@@ -108,16 +108,16 @@ class BetanoScraper(BaseScraper):
         match_date: Optional[datetime] = None
     ) -> OddsData:
         """Create mock odds data for demonstration"""
-
+        
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
-
-        # Simple deterministic odds based on team name lengths
-        # Always produces valid odds > 1.0
-        base_home = 1.80 + (len(home_team) % 10) * 0.15
-        base_away = 2.00 + (len(away_team) % 10) * 0.15
-        base_draw = 3.20
-
+        
+        # Deterministic odds based on team name lengths
+        # Includes bookmaker margin (implied probabilities sum > 1.0)
+        base_home = 1.50 + (len(home_team) % 8) * 0.12
+        base_away = 1.70 + (len(away_team) % 8) * 0.12
+        base_draw = 2.80
+        
         return OddsData(
             match_id=f"betano_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
             home_team=home_team,
@@ -128,10 +128,10 @@ class BetanoScraper(BaseScraper):
             home_win=round(base_home, 2),
             draw=round(base_draw, 2),
             away_win=round(base_away, 2),
-            over_2_5=1.85,
-            under_2_5=1.95,
-            btts_yes=1.75,
-            btts_no=2.05,
+            over_2_5=1.65,
+            under_2_5=1.75,
+            btts_yes=1.55,
+            btts_no=1.85,
             url=f"{self.base_url}/sport/football/{home_team}-{away_team}",
         )
 

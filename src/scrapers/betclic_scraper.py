@@ -62,11 +62,11 @@ class BetclicScraper(BaseScraper):
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
         
-        # Simple deterministic odds based on team name lengths
-        # Always produces valid odds > 1.0
-        base_home = 1.85 + (len(home_team) % 10) * 0.12
-        base_away = 2.05 + (len(away_team) % 10) * 0.12
-        base_draw = 3.25
+        # Deterministic odds based on team name lengths
+        # Includes bookmaker margin (implied probabilities sum > 1.0)
+        base_home = 1.55 + (len(home_team) % 8) * 0.11
+        base_away = 1.75 + (len(away_team) % 8) * 0.11
+        base_draw = 2.85
         
         return OddsData(
             match_id=f"betclic_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
@@ -78,10 +78,10 @@ class BetclicScraper(BaseScraper):
             home_win=round(base_home, 2),
             draw=round(base_draw, 2),
             away_win=round(base_away, 2),
-            over_2_5=1.90,
-            under_2_5=2.00,
-            btts_yes=1.80,
-            btts_no=2.10,
+            over_2_5=1.70,
+            under_2_5=1.80,
+            btts_yes=1.60,
+            btts_no=1.90,
             url=f"{self.base_url}/futebol/{home_team}-{away_team}",
         )
 
