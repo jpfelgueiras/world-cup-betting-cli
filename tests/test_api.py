@@ -561,6 +561,5 @@ class TestAppCreation:
 
     def test_default_app_exists(self):
         """Test that default app instance exists"""
-        from src.api.app import app
         assert app is not None
         assert app.title == "World Cup Betting Insights API"

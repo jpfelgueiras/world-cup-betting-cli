@@ -164,9 +164,9 @@ class TeamStats:
         Positive = this team has advantage, negative = opponent has advantage
         """
         total_h2h = (
-            self.team_data.h2h_wins +
-            self.team_data.h2h_draws +
-            self.team_data.h2h_losses
+            self.team_data.h2h_wins
+            + self.team_data.h2h_draws
+            + self.team_data.h2h_losses
         )
 
         if total_h2h == 0:
