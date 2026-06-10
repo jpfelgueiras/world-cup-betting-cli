@@ -9,17 +9,19 @@ Uses statistical modeling based on:
 - Tournament context
 """
 
-import numpy as np
 import math
-from typing import List, Optional, Tuple
 from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
-from .team_stats import TeamStats, TeamData, MatchContext
+import numpy as np
+
+from .team_stats import MatchContext, TeamData, TeamStats
 
 
 @dataclass
 class MatchPrediction:
     """Result of a match prediction"""
+
     home_team: str
     away_team: str
 
@@ -90,11 +92,11 @@ class PredictionEngine:
     def __init__(self):
         # Model weights (can be tuned based on backtesting)
         self.weights = {
-            'elo': 0.30,
-            'form': 0.25,
-            'h2h': 0.15,
-            'attack_defense': 0.20,
-            'context': 0.10,
+            "elo": 0.30,
+            "form": 0.25,
+            "h2h": 0.15,
+            "attack_defense": 0.20,
+            "context": 0.10,
         }
 
         # Home advantage factor (in World Cup, varies by venue)
@@ -104,7 +106,7 @@ class PredictionEngine:
         self,
         home_team: TeamData,
         away_team: TeamData,
-        context: Optional[MatchContext] = None
+        context: Optional[MatchContext] = None,
     ) -> MatchPrediction:
         """
         Generate comprehensive match prediction.
@@ -121,9 +123,7 @@ class PredictionEngine:
         )
 
         # Convert to win/draw/loss probabilities
-        home_win, draw, away_win = self._poisson_to_probabilities(
-            home_xg, away_xg
-        )
+        home_win, draw, away_win = self._poisson_to_probabilities(home_xg, away_xg)
 
         # Adjust for context (must-win, rest days, etc.)
         if context:
@@ -148,8 +148,7 @@ class PredictionEngine:
 
         # Generate reasoning
         key_factors = self._generate_reasoning(
-            home_stats, away_stats, home_xg, away_xg,
-            home_win, draw, away_win
+            home_stats, away_stats, home_xg, away_xg, home_win, draw, away_win
         )
 
         return MatchPrediction(
@@ -170,7 +169,7 @@ class PredictionEngine:
         self,
         home_stats: TeamStats,
         away_stats: TeamStats,
-        context: Optional[MatchContext]
+        context: Optional[MatchContext],
     ) -> Tuple[float, float]:
         """
         Calculate expected goals for each team using strength metrics.
@@ -212,9 +211,7 @@ class PredictionEngine:
         return home_xg, away_xg
 
     def _poisson_to_probabilities(
-        self,
-        home_xg: float,
-        away_xg: float
+        self, home_xg: float, away_xg: float
     ) -> Tuple[float, float, float]:
         """
         Convert expected goals to win/draw/loss probabilities using Poisson distribution.
@@ -251,13 +248,9 @@ class PredictionEngine:
         """Poisson probability mass function"""
         if k < 0:
             return 0.0
-        return (np.exp(-lam) * (lam ** k)) / math.factorial(k)
+        return (np.exp(-lam) * (lam**k)) / math.factorial(k)
 
-    def _calculate_over_2_5_probability(
-        self,
-        home_xg: float,
-        away_xg: float
-    ) -> float:
+    def _calculate_over_2_5_probability(self, home_xg: float, away_xg: float) -> float:
         """Calculate probability of over 2.5 goals"""
         total_xg = home_xg + away_xg
 
@@ -268,11 +261,7 @@ class PredictionEngine:
 
         return 1.0 - prob_under
 
-    def _calculate_btts_probability(
-        self,
-        home_xg: float,
-        away_xg: float
-    ) -> float:
+    def _calculate_btts_probability(self, home_xg: float, away_xg: float) -> float:
         """Calculate probability of both teams scoring"""
         # P(home scores) = 1 - P(home scores 0)
         prob_home_scores = 1 - self._poisson_pmf(0, home_xg)
@@ -288,7 +277,7 @@ class PredictionEngine:
         away_win: float,
         home_stats: TeamStats,
         away_stats: TeamStats,
-        context: MatchContext
+        context: MatchContext,
     ) -> Tuple[float, float, float]:
         """Apply tournament context adjustments"""
         adjustment = 0.0
@@ -326,10 +315,7 @@ class PredictionEngine:
         return home_win, draw, away_win
 
     def _calculate_confidence(
-        self,
-        home_stats: TeamStats,
-        away_stats: TeamStats,
-        probs: List[float]
+        self, home_stats: TeamStats, away_stats: TeamStats, probs: List[float]
     ) -> Tuple[float, float, float]:
         """
         Calculate confidence levels for each outcome.
@@ -344,22 +330,20 @@ class PredictionEngine:
         base_confidence = 50 + (max_prob * 40)  # 50-90 range
 
         # Adjust for strength differential
-        strength_diff = abs(
-            home_stats.overall_strength - away_stats.overall_strength
-        )
+        strength_diff = abs(home_stats.overall_strength - away_stats.overall_strength)
         diff_bonus = min(10, strength_diff / 5)
 
         # Adjust for form consistency
-        form_variance = abs(
-            home_stats.form_factor - away_stats.form_factor
-        )
+        form_variance = abs(home_stats.form_factor - away_stats.form_factor)
         form_bonus = min(5, form_variance / 10)
 
         final_confidence = min(95, base_confidence + diff_bonus + form_bonus)
 
         # Distribute confidence across outcomes
         home_conf = final_confidence * (probs[0] / max(probs))
-        draw_conf = final_confidence * (probs[1] / max(probs)) * 0.8  # Draw harder to predict
+        draw_conf = (
+            final_confidence * (probs[1] / max(probs)) * 0.8
+        )  # Draw harder to predict
         away_conf = final_confidence * (probs[2] / max(probs))
 
         return (
@@ -376,7 +360,7 @@ class PredictionEngine:
         away_xg: float,
         home_win: float,
         draw: float,
-        away_win: float
+        away_win: float,
     ) -> List[str]:
         """Generate human-readable reasoning for the prediction"""
         factors = []
@@ -386,9 +370,13 @@ class PredictionEngine:
 
         # Form analysis
         if home.form_percentage > 70:
-            factors.append(f"{home.name} in excellent form ({home.form_percentage:.0f}% last 10)")
+            factors.append(
+                f"{home.name} in excellent form ({home.form_percentage:.0f}% last 10)"
+            )
         elif away.form_percentage > 70:
-            factors.append(f"{away.name} in excellent form ({away.form_percentage:.0f}% last 10)")
+            factors.append(
+                f"{away.name} in excellent form ({away.form_percentage:.0f}% last 10)"
+            )
 
         # Strength comparison
         if home_stats.overall_strength > away_stats.overall_strength + 10:
@@ -398,7 +386,9 @@ class PredictionEngine:
 
         # H2H history
         if home.h2h_wins > home.h2h_losses + 2:
-            factors.append(f"{home.name} dominates historical H2H ({home.h2h_wins}W-{home.h2h_draws}D-{home.h2h_losses}L)")
+            factors.append(
+                f"{home.name} dominates historical H2H ({home.h2h_wins}W-{home.h2h_draws}D-{home.h2h_losses}L)"
+            )
         elif away.h2h_wins > away.h2h_losses + 2:
             factors.append(f"{away.name} dominates historical H2H")
 
@@ -411,9 +401,13 @@ class PredictionEngine:
 
         # Key players
         if home.key_players_out:
-            factors.append(f"{home.name} missing: {', '.join(home.key_players_out[:2])}")
+            factors.append(
+                f"{home.name} missing: {', '.join(home.key_players_out[:2])}"
+            )
         if away.key_players_out:
-            factors.append(f"{away.name} missing: {', '.join(away.key_players_out[:2])}")
+            factors.append(
+                f"{away.name} missing: {', '.join(away.key_players_out[:2])}"
+            )
 
         # Attack vs defense mismatch
         if home_stats.attack_strength > away_stats.defense_strength + 15:

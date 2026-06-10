@@ -19,27 +19,28 @@ Example usage:
     print(f"Total value bets: {scan_results.total_value_bets}")
 """
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from .config import DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES
+from .config import BETTING_SITES, DEFAULT_MIN_CONFIDENCE, DEFAULT_MIN_EV
 from .predictors.prediction_engine import PredictionEngine
 from .predictors.team_stats import TeamData
 from .scrapers.betano_scraper import BetanoScraper
 from .scrapers.betclic_scraper import BetclicScraper
 from .scrapers.solverde_scraper import SolverdeScraper
 from .utils.ev_calculator import (
-    analyze_bet,
-    find_best_value_bets,
     BetRecommendation,
+    analyze_bet,
     calculate_market_average,
+    find_best_value_bets,
 )
 
 
 @dataclass
 class MatchAnalysisResult:
     """Result of a match analysis"""
+
     home_team: str
     away_team: str
     match_date: Optional[datetime] = None
@@ -93,46 +94,47 @@ class MatchAnalysisResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
-            'home_team': self.home_team,
-            'away_team': self.away_team,
-            'match_date': self.match_date.isoformat() if self.match_date else None,
-            'probabilities': {
-                'home_win': self.home_win_prob,
-                'draw': self.draw_prob,
-                'away_win': self.away_win_prob,
-                'over_2_5': self.over_2_5_prob,
-                'btts': self.btts_prob,
+            "home_team": self.home_team,
+            "away_team": self.away_team,
+            "match_date": self.match_date.isoformat() if self.match_date else None,
+            "probabilities": {
+                "home_win": self.home_win_prob,
+                "draw": self.draw_prob,
+                "away_win": self.away_win_prob,
+                "over_2_5": self.over_2_5_prob,
+                "btts": self.btts_prob,
             },
-            'confidence': {
-                'home': self.home_confidence,
-                'draw': self.draw_confidence,
-                'away': self.away_confidence,
+            "confidence": {
+                "home": self.home_confidence,
+                "draw": self.draw_confidence,
+                "away": self.away_confidence,
             },
-            'market_averages': {
-                'home': self.market_avg_home,
-                'draw': self.market_avg_draw,
-                'away': self.market_avg_away,
+            "market_averages": {
+                "home": self.market_avg_home,
+                "draw": self.market_avg_draw,
+                "away": self.market_avg_away,
             },
-            'value_bets': [
+            "value_bets": [
                 {
-                    'market': b.market,
-                    'site': b.site,
-                    'site_name': b.site_name,
-                    'odds': b.odds,
-                    'ev_percentage': b.ev_percentage,
-                    'confidence': b.confidence,
-                    'is_value_bet': b.is_value_bet,
+                    "market": b.market,
+                    "site": b.site,
+                    "site_name": b.site_name,
+                    "odds": b.odds,
+                    "ev_percentage": b.ev_percentage,
+                    "confidence": b.confidence,
+                    "is_value_bet": b.is_value_bet,
                 }
                 for b in self.value_bets
             ],
-            'key_factors': self.key_factors,
-            'num_bookmakers': self.num_bookmakers,
+            "key_factors": self.key_factors,
+            "num_bookmakers": self.num_bookmakers,
         }
 
 
 @dataclass
 class ScanResult:
     """Result of scanning multiple matches"""
+
     scan_date: datetime = field(default_factory=datetime.now)
     total_matches: int = 0
     matches_with_value_bets: int = 0
@@ -156,11 +158,11 @@ class ScanResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
-            'scan_date': self.scan_date.isoformat(),
-            'total_matches': self.total_matches,
-            'matches_with_value_bets': self.matches_with_value_bets,
-            'total_value_bets': self.total_value_bets,
-            'matches': [m.to_dict() for m in self.matches],
+            "scan_date": self.scan_date.isoformat(),
+            "total_matches": self.total_matches,
+            "matches_with_value_bets": self.matches_with_value_bets,
+            "total_value_bets": self.total_value_bets,
+            "matches": [m.to_dict() for m in self.matches],
         }
 
 
@@ -210,22 +212,24 @@ class BettingInsights:
         # Initialize scrapers based on enabled sites
         if enabled_sites is None:
             enabled_sites = [
-                key for key, config in BETTING_SITES.items()
-                if config.get('enabled', False)
+                key
+                for key, config in BETTING_SITES.items()
+                if config.get("enabled", False)
             ]
 
         self.scrapers = []
-        if 'betano' in enabled_sites:
+        if "betano" in enabled_sites:
             self.scrapers.append(BetanoScraper())
-        if 'betclic' in enabled_sites:
+        if "betclic" in enabled_sites:
             self.scrapers.append(BetclicScraper())
-        if 'solverde' in enabled_sites:
+        if "solverde" in enabled_sites:
             self.scrapers.append(SolverdeScraper())
 
         # Initialize cache
         if cache_enabled:
             try:
                 from .predictors.data_loader import DataLoader
+
                 self.data_loader = DataLoader()
             except Exception:
                 self.data_loader = None
@@ -259,7 +263,9 @@ class BettingInsights:
         """
         # Use overrides or defaults
         ev_threshold = min_ev if min_ev is not None else self.min_ev
-        conf_threshold = min_confidence if min_confidence is not None else self.min_confidence
+        conf_threshold = (
+            min_confidence if min_confidence is not None else self.min_confidence
+        )
 
         # Create team data (in production, fetch from real sources)
         home_data = self._create_team_data(home_team)
@@ -298,9 +304,9 @@ class BettingInsights:
             home_confidence=prediction.home_confidence,
             draw_confidence=prediction.draw_confidence,
             away_confidence=prediction.away_confidence,
-            market_avg_home=market_avg.get('home_win'),
-            market_avg_draw=market_avg.get('draw'),
-            market_avg_away=market_avg.get('away_win'),
+            market_avg_home=market_avg.get("home_win"),
+            market_avg_draw=market_avg.get("draw"),
+            market_avg_away=market_avg.get("away_win"),
             value_bets=value_bets,
             key_factors=prediction.key_factors,
             num_bookmakers=len(all_odds),
@@ -330,7 +336,9 @@ class BettingInsights:
             ScanResult with all matches containing value bets
         """
         ev_threshold = min_ev if min_ev is not None else self.min_ev
-        conf_threshold = min_confidence if min_confidence is not None else self.min_confidence
+        conf_threshold = (
+            min_confidence if min_confidence is not None else self.min_confidence
+        )
 
         # Collect all upcoming matches
         all_matches = {}
@@ -341,8 +349,8 @@ class BettingInsights:
                 for match in matches:
                     key = f"{match.home_team}_{match.away_team}"
                     if key not in all_matches:
-                        all_matches[key] = {'match': match, 'odds': []}
-                    all_matches[key]['odds'].append(match)
+                        all_matches[key] = {"match": match, "odds": []}
+                    all_matches[key]["odds"].append(match)
             except Exception:
                 continue  # Skip failed scrapers
 
@@ -351,7 +359,7 @@ class BettingInsights:
         total_value_bets = 0
 
         for match_key, data in all_matches.items():
-            match = data['match']
+            match = data["match"]
             odds_list = data  # noqa: F841['odds']
 
             # Analyze match
@@ -361,7 +369,7 @@ class BettingInsights:
                     match.away_team,
                     match.match_date,
                     ev_threshold,
-                    conf_threshold
+                    conf_threshold,
                 )
 
                 if result.has_value_bets:
@@ -386,13 +394,15 @@ class BettingInsights:
         """
         result = []
         for site_key, config in BETTING_SITES.items():
-            result.append({
-                'key': site_key,
-                'name': config.get('name', site_key),
-                'url': config.get('url', ''),
-                'enabled': config.get('enabled', False),
-                'rate_limit_seconds': config.get('rate_limit_seconds', 5),
-            })
+            result.append(
+                {
+                    "key": site_key,
+                    "name": config.get("name", site_key),
+                    "url": config.get("url", ""),
+                    "enabled": config.get("enabled", False),
+                    "rate_limit_seconds": config.get("rate_limit_seconds", 5),
+                }
+            )
         return result
 
     def update_config(
@@ -416,11 +426,11 @@ class BettingInsights:
 
         if enabled_sites is not None:
             self.scrapers = []
-            if 'betano' in enabled_sites:
+            if "betano" in enabled_sites:
                 self.scrapers.append(BetanoScraper())
-            if 'betclic' in enabled_sites:
+            if "betclic" in enabled_sites:
                 self.scrapers.append(BetclicScraper())
-            if 'solverde' in enabled_sites:
+            if "solverde" in enabled_sites:
                 self.scrapers.append(SolverdeScraper())
 
     def _create_team_data(self, team_name: str) -> TeamData:
@@ -444,7 +454,9 @@ class BettingInsights:
             rest_days=random.randint(2, 7),
         )
 
-    def _get_match_odds(self, home_team: str, away_team: str, match_date: Optional[datetime]):
+    def _get_match_odds(
+        self, home_team: str, away_team: str, match_date: Optional[datetime]
+    ):
         """Get odds from all configured scrapers"""
         all_odds = []
 
@@ -458,6 +470,7 @@ class BettingInsights:
             except Exception as e:
                 # Log error but continue with other scrapers
                 import logging
+
                 logging.warning(f"{scraper.site_key} failed: {type(e).__name__}: {e}")
                 continue
 
@@ -472,15 +485,17 @@ class BettingInsights:
         btts_odds = [o.btts_yes for o in odds_list if o.btts_yes]
 
         return {
-            'home_win': calculate_market_average(home_odds) if home_odds else None,
-            'draw': calculate_market_average(draw_odds) if draw_odds else None,
-            'away_win': calculate_market_average(away_odds) if away_odds else None,
-            'over_2_5': calculate_market_average(over_odds) if over_odds else None,
-            'btts_yes': calculate_market_average(btts_odds) if btts_odds else None,
-            'num_bookmakers': len(odds_list),
+            "home_win": calculate_market_average(home_odds) if home_odds else None,
+            "draw": calculate_market_average(draw_odds) if draw_odds else None,
+            "away_win": calculate_market_average(away_odds) if away_odds else None,
+            "over_2_5": calculate_market_average(over_odds) if over_odds else None,
+            "btts_yes": calculate_market_average(btts_odds) if btts_odds else None,
+            "num_bookmakers": len(odds_list),
         }
 
-    def _generate_recommendations(self, prediction, odds_list, market_avg, min_ev, min_conf):
+    def _generate_recommendations(
+        self, prediction, odds_list, market_avg, min_ev, min_conf
+    ):
         """Generate bet recommendations"""
         recommendations = []
 
@@ -496,7 +511,7 @@ class BettingInsights:
                     confidence=prediction.home_confidence,
                     reasoning=prediction.key_factors,
                     min_ev=min_ev,
-                    min_confidence=min_conf
+                    min_confidence=min_conf,
                 )
                 recommendations.append(rec)
 
@@ -510,7 +525,7 @@ class BettingInsights:
                     confidence=prediction.draw_confidence,
                     reasoning=prediction.key_factors,
                     min_ev=min_ev,
-                    min_confidence=min_conf
+                    min_confidence=min_conf,
                 )
                 recommendations.append(rec)
 
@@ -524,7 +539,7 @@ class BettingInsights:
                     confidence=prediction.away_confidence,
                     reasoning=prediction.key_factors,
                     min_ev=min_ev,
-                    min_confidence=min_conf
+                    min_confidence=min_conf,
                 )
                 recommendations.append(rec)
 
@@ -539,7 +554,7 @@ class BettingInsights:
                     confidence=65.0,
                     reasoning=prediction.key_factors,
                     min_ev=min_ev,
-                    min_confidence=min_conf
+                    min_confidence=min_conf,
                 )
                 recommendations.append(rec)
 
@@ -554,7 +569,7 @@ class BettingInsights:
                     confidence=65.0,
                     reasoning=prediction.key_factors,
                     min_ev=min_ev,
-                    min_confidence=min_conf
+                    min_confidence=min_conf,
                 )
                 recommendations.append(rec)
 
@@ -563,9 +578,7 @@ class BettingInsights:
 
 # Convenience function for quick access
 def create_insights(
-    min_ev: float = 5.0,
-    min_confidence: float = 60.0,
-    **kwargs
+    min_ev: float = 5.0, min_confidence: float = 60.0, **kwargs
 ) -> BettingInsights:
     """
     Create a BettingInsights instance with custom configuration.

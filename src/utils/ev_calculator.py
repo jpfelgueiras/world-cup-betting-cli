@@ -2,13 +2,14 @@
 Expected Value (EV) Calculator and utilities
 """
 
-from typing import List
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass
 class BetRecommendation:
     """Represents a betting recommendation with EV analysis"""
+
     market: str
     site: str
     site_name: str
@@ -65,7 +66,7 @@ def is_value_bet(
     ev_percentage: float,
     confidence: float,
     min_ev: float = 5.0,
-    min_confidence: float = 60.0
+    min_confidence: float = 60.0,
 ) -> bool:
     """
     Determine if a bet qualifies as a value bet.
@@ -86,7 +87,7 @@ def analyze_bet(
     confidence: float,
     reasoning: List[str],
     min_ev: float = 5.0,
-    min_confidence: float = 60.0
+    min_confidence: float = 60.0,
 ) -> BetRecommendation:
     """
     Perform complete EV analysis for a single bet.
@@ -105,14 +106,14 @@ def analyze_bet(
         ev_percentage=ev_percentage,
         confidence=confidence,
         reasoning=reasoning,
-        is_value_bet=is_value
+        is_value_bet=is_value,
     )
 
 
 def find_best_value_bets(
     recommendations: List[BetRecommendation],
     min_ev: float = 5.0,
-    min_confidence: float = 60.0
+    min_confidence: float = 60.0,
 ) -> List[BetRecommendation]:
     """
     Filter and sort recommendations by EV (highest first).
@@ -120,7 +121,8 @@ def find_best_value_bets(
     Only returns bets that meet the value criteria.
     """
     value_bets = [
-        rec for rec in recommendations
+        rec
+        for rec in recommendations
         if is_value_bet(rec.ev_percentage, rec.confidence, min_ev, min_confidence)
     ]
 
@@ -141,8 +143,7 @@ def format_ev_display(ev_percentage: float) -> str:
 
 
 def calculate_confidence_from_variance(
-    predictions: List[float],
-    sample_size: int
+    predictions: List[float], sample_size: int
 ) -> float:
     """
     Calculate model confidence based on prediction variance and sample size.

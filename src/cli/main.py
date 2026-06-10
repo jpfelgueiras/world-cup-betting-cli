@@ -7,36 +7,40 @@ Main command-line interface using Click framework.
 import json
 import sys
 from datetime import datetime
-from typing import Optional, List
 from pathlib import Path
+from typing import List, Optional
 
 import click
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from rich import box
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import DISCLAIMER, DEFAULT_MIN_EV, DEFAULT_MIN_CONFIDENCE, BETTING_SITES  # noqa: E402
-from predictors.prediction_engine import PredictionEngine, MatchPrediction  # noqa: E402
+from config import (  # noqa: E402
+    BETTING_SITES,
+    DEFAULT_MIN_CONFIDENCE,
+    DEFAULT_MIN_EV,
+    DISCLAIMER,
+)
+from predictors.prediction_engine import MatchPrediction, PredictionEngine  # noqa: E402
 from predictors.team_stats import TeamData  # noqa: E402
 from scrapers.betano_scraper import BetanoScraper  # noqa: E402
 from scrapers.betclic_scraper import BetclicScraper  # noqa: E402
 from scrapers.solverde_scraper import SolverdeScraper  # noqa: E402
 from utils.ev_calculator import (  # noqa: E402
+    BetRecommendation,
     find_best_value_bets,
     format_ev_display,
-    BetRecommendation,
 )
-
 
 console = Console()
 
 
 @click.group()
-@click.version_option(version='0.1.0', prog_name='worldcup')
+@click.version_option(version="0.1.0", prog_name="worldcup")
 def cli():
     """
     🏆 World Cup Betting Insights CLI
@@ -51,16 +55,37 @@ def cli():
 
 
 @cli.command()
-@click.argument('match')
-@click.option('--site', '-s', type=click.Choice(['betano', 'betclic', 'solverde', 'all']),
-              default='all', help='Specific betting site to analyze')
-@click.option('--min-ev', type=float, default=DEFAULT_MIN_EV,
-              help=f'Minimum EV threshold (default: {DEFAULT_MIN_EV}%)')
-@click.option('--min-confidence', type=float, default=DEFAULT_MIN_CONFIDENCE,
-              help=f'Minimum confidence threshold (default: {DEFAULT_MIN_CONFIDENCE}%)')
-@click.option('--format', '-f', 'output_format', type=click.Choice(['table', 'json', 'csv']),
-              default='table', help='Output format')
-def predict(match: str, site: str, min_ev: float, min_confidence: float, output_format: str):
+@click.argument("match")
+@click.option(
+    "--site",
+    "-s",
+    type=click.Choice(["betano", "betclic", "solverde", "all"]),
+    default="all",
+    help="Specific betting site to analyze",
+)
+@click.option(
+    "--min-ev",
+    type=float,
+    default=DEFAULT_MIN_EV,
+    help=f"Minimum EV threshold (default: {DEFAULT_MIN_EV}%)",
+)
+@click.option(
+    "--min-confidence",
+    type=float,
+    default=DEFAULT_MIN_CONFIDENCE,
+    help=f"Minimum confidence threshold (default: {DEFAULT_MIN_CONFIDENCE}%)",
+)
+@click.option(
+    "--format",
+    "-f",
+    "output_format",
+    type=click.Choice(["table", "json", "csv"]),
+    default="table",
+    help="Output format",
+)
+def predict(
+    match: str, site: str, min_ev: float, min_confidence: float, output_format: str
+):
     """
     Analyze a specific match.
 
@@ -69,17 +94,19 @@ def predict(match: str, site: str, min_ev: float, min_confidence: float, output_
     Example: worldcup predict "Portugal vs Brazil"
     """
     # Parse match string
-    if 'vs' not in match and 'versus' not in match:
-        console.print("[red]❌ Invalid match format. Use: \"Team A vs Team B\"[/red]")
+    if "vs" not in match and "versus" not in match:
+        console.print('[red]❌ Invalid match format. Use: "Team A vs Team B"[/red]')
         sys.exit(1)
 
     # Split team names
-    separator = 'vs' if 'vs' in match else 'versus'
+    separator = "vs" if "vs" in match else "versus"
     parts = match.split(separator)
     home_team = parts[0].strip()
     away_team = parts[1].strip()
 
-    console.print(f"\n[bold blue]🔍 Analyzing: {home_team} vs {away_team}[/bold blue]\n")
+    console.print(
+        f"\n[bold blue]🔍 Analyzing: {home_team} vs {away_team}[/bold blue]\n"
+    )
 
     # Create prediction engine
     engine = PredictionEngine()
@@ -101,7 +128,9 @@ def predict(match: str, site: str, min_ev: float, min_confidence: float, output_
             if odds:
                 all_odds.append(odds)
         except Exception as e:
-            console.print(f"[yellow]⚠️  {scraper.site_name} unavailable: {str(e)[:50]}[/yellow]")
+            console.print(
+                f"[yellow]⚠️  {scraper.site_name} unavailable: {str(e)[:50]}[/yellow]"
+            )
 
     if not all_odds:
         console.print("[red]❌ No odds available from any betting site[/red]")
@@ -116,9 +145,9 @@ def predict(match: str, site: str, min_ev: float, min_confidence: float, output_
     )
 
     # Output results
-    if output_format == 'json':
+    if output_format == "json":
         output_json(prediction, market_avg, recommendations)
-    elif output_format == 'csv':
+    elif output_format == "csv":
         output_csv(recommendations)
     else:
         output_table(prediction, market_avg, recommendations)
@@ -128,13 +157,27 @@ def predict(match: str, site: str, min_ev: float, min_confidence: float, output_
 
 
 @cli.command()
-@click.option('--date', '-d', type=str, default=None,
-              help='Specific date (YYYY-MM-DD), defaults to next 7 days')
-@click.option('--days', type=int, default=7, help='Number of days to scan ahead')
-@click.option('--min-ev', type=float, default=DEFAULT_MIN_EV,
-              help=f'Minimum EV threshold (default: {DEFAULT_MIN_EV}%)')
-@click.option('--site', '-s', type=click.Choice(['betano', 'betclic', 'solverde', 'all']),
-              default='all', help='Specific betting site')
+@click.option(
+    "--date",
+    "-d",
+    type=str,
+    default=None,
+    help="Specific date (YYYY-MM-DD), defaults to next 7 days",
+)
+@click.option("--days", type=int, default=7, help="Number of days to scan ahead")
+@click.option(
+    "--min-ev",
+    type=float,
+    default=DEFAULT_MIN_EV,
+    help=f"Minimum EV threshold (default: {DEFAULT_MIN_EV}%)",
+)
+@click.option(
+    "--site",
+    "-s",
+    type=click.Choice(["betano", "betclic", "solverde", "all"]),
+    default="all",
+    help="Specific betting site",
+)
 def scan(date: Optional[str], days: int, min_ev: float, site: str):
     """
     Scan upcoming matches for value bets.
@@ -146,7 +189,7 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
     # Determine date range
     if date:
         try:
-            date = datetime.strptime(date, '%Y-%m-%d')
+            date = datetime.strptime(date, "%Y-%m-%d")
         except ValueError:
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
@@ -165,10 +208,12 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
             for match in matches:
                 key = f"{match.home_team}_{match.away_team}"
                 if key not in all_matches:
-                    all_matches[key] = {'match': match, 'odds': []}
-                all_matches[key]['odds'].append(match)
+                    all_matches[key] = {"match": match, "odds": []}
+                all_matches[key]["odds"].append(match)
         except Exception as e:
-            console.print(f"[yellow]⚠️  {scraper.site_name} scan failed: {str(e)[:50]}[/yellow]")
+            console.print(
+                f"[yellow]⚠️  {scraper.site_name} scan failed: {str(e)[:50]}[/yellow]"
+            )
 
     if not all_matches:
         console.print("[red]❌ No matches found[/red]")
@@ -181,8 +226,8 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
     engine = PredictionEngine()
 
     for match_key, data in all_matches.items():
-        match = data['match']
-        odds_list = data['odds']
+        match = data["match"]
+        odds_list = data["odds"]
 
         # Create mock team data
         home_data = create_mock_team_data(match.home_team)
@@ -203,17 +248,23 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
         value_bets = [r for r in recommendations if r.is_value_bet]
         if value_bets:
             value_bet_count += len(value_bets)
-            console.print(f"[bold green]✅ {match.home_team} vs {match.away_team}[/bold green] - {len(value_bets)} value bets found")
+            console.print(
+                f"[bold green]✅ {match.home_team} vs {match.away_team}[/bold green] - {len(value_bets)} value bets found"
+            )
 
             # Show top value bet
             best = max(value_bets, key=lambda x: x.ev_percentage)
-            console.print(f"   Best: {best.market} @ {best.site_name} ({best.odds}) → EV {format_ev_display(best.ev_percentage)}")
+            console.print(
+                f"   Best: {best.market} @ {best.site_name} ({best.odds}) → EV {format_ev_display(best.ev_percentage)}"
+            )
             console.print()
 
     if value_bet_count == 0:
         console.print("[yellow]⚠️  No value bets found matching your criteria[/yellow]")
     else:
-        console.print(f"\n[bold green]🎯 Total value bets found: {value_bet_count}[/bold green]")
+        console.print(
+            f"\n[bold green]🎯 Total value bets found: {value_bet_count}[/bold green]"
+        )
 
     console.print(Panel(DISCLAIMER, style="yellow", box=box.ROUNDED))
 
@@ -231,24 +282,30 @@ def interactive():
         try:
             cmd = click.prompt(
                 "Command",
-                type=click.Choice(['scan', 'predict', 'sites', 'quit'], case_sensitive=False),
-                default='scan',
-                show_choices=True
+                type=click.Choice(
+                    ["scan", "predict", "sites", "quit"], case_sensitive=False
+                ),
+                default="scan",
+                show_choices=True,
             )
 
-            if cmd == 'quit':
+            if cmd == "quit":
                 console.print("\n👋 Good luck and bet responsibly!")
                 break
-            elif cmd == 'sites':
+            elif cmd == "sites":
                 show_available_sites()
-            elif cmd == 'scan':
+            elif cmd == "scan":
                 min_ev = click.prompt("Minimum EV %", type=float, default=5.0)
                 # Would trigger scan here
-                console.print(f"[yellow]Scan with {min_ev}% EV threshold (not implemented in demo)[/yellow]")
-            elif cmd == 'predict':
+                console.print(
+                    f"[yellow]Scan with {min_ev}% EV threshold (not implemented in demo)[/yellow]"
+                )
+            elif cmd == "predict":
                 match = click.prompt("Match (Team A vs Team B)")
                 # Would trigger predict here
-                console.print(f"[yellow]Predict {match} (not implemented in demo)[/yellow]")
+                console.print(
+                    f"[yellow]Predict {match} (not implemented in demo)[/yellow]"
+                )
 
         except KeyboardInterrupt:
             console.print("\n\n👋 Goodbye!")
@@ -272,29 +329,32 @@ def show_available_sites():
     table.add_column("Rate Limit", justify="center")
 
     for site_key, config in BETTING_SITES.items():
-        status = "✅ Enabled" if config.get('enabled', False) else "⏸️ Disabled"
+        status = "✅ Enabled" if config.get("enabled", False) else "⏸️ Disabled"
         table.add_row(
-            config.get('name', site_key),
-            config.get('url', 'N/A'),
+            config.get("name", site_key),
+            config.get("url", "N/A"),
             status,
-            f"{config.get('rate_limit_seconds', 5)}s"
+            f"{config.get('rate_limit_seconds', 5)}s",
         )
 
     console.print(table)
-    console.print("\nℹ️  All sites are regulated by SRIJ (Portuguese Gambling Authority)")
+    console.print(
+        "\nℹ️  All sites are regulated by SRIJ (Portuguese Gambling Authority)"
+    )
 
 
 # Helper functions
+
 
 def get_scrapers(site: str) -> List:
     """Get list of scrapers based on site parameter"""
     scrapers = []
 
-    if site == 'all' or site == 'betano':
+    if site == "all" or site == "betano":
         scrapers.append(BetanoScraper())
-    if site == 'all' or site == 'betclic':
+    if site == "all" or site == "betclic":
         scrapers.append(BetclicScraper())
-    if site == 'all' or site == 'solverde':
+    if site == "all" or site == "solverde":
         scrapers.append(SolverdeScraper())
 
     return scrapers
@@ -334,12 +394,12 @@ def calculate_market_averages(odds_list: List) -> dict:
     btts_odds = [o.btts_yes for o in odds_list if o.btts_yes]
 
     return {
-        'home_win': calculate_market_average(home_odds) if home_odds else 0,
-        'draw': calculate_market_average(draw_odds) if draw_odds else 0,
-        'away_win': calculate_market_average(away_odds) if away_odds else 0,
-        'over_2_5': calculate_market_average(over_odds) if over_odds else 0,
-        'btts_yes': calculate_market_average(btts_odds) if btts_odds else 0,
-        'num_bookmakers': len(odds_list),
+        "home_win": calculate_market_average(home_odds) if home_odds else 0,
+        "draw": calculate_market_average(draw_odds) if draw_odds else 0,
+        "away_win": calculate_market_average(away_odds) if away_odds else 0,
+        "over_2_5": calculate_market_average(over_odds) if over_odds else 0,
+        "btts_yes": calculate_market_average(btts_odds) if btts_odds else 0,
+        "num_bookmakers": len(odds_list),
     }
 
 
@@ -348,7 +408,7 @@ def generate_recommendations(
     odds_list: List,
     market_avg: dict,
     min_ev: float,
-    min_confidence: float
+    min_confidence: float,
 ) -> List[BetRecommendation]:
     """Generate bet recommendations based on prediction and odds"""
     from utils.ev_calculator import analyze_bet
@@ -367,7 +427,7 @@ def generate_recommendations(
                 confidence=prediction.home_confidence,
                 reasoning=prediction.key_factors,
                 min_ev=min_ev,
-                min_confidence=min_confidence
+                min_confidence=min_confidence,
             )
             recommendations.append(rec)
 
@@ -381,7 +441,7 @@ def generate_recommendations(
                 confidence=prediction.draw_confidence,
                 reasoning=prediction.key_factors,
                 min_ev=min_ev,
-                min_confidence=min_confidence
+                min_confidence=min_confidence,
             )
             recommendations.append(rec)
 
@@ -395,7 +455,7 @@ def generate_recommendations(
                 confidence=prediction.away_confidence,
                 reasoning=prediction.key_factors,
                 min_ev=min_ev,
-                min_confidence=min_confidence
+                min_confidence=min_confidence,
             )
             recommendations.append(rec)
 
@@ -410,7 +470,7 @@ def generate_recommendations(
                 confidence=65.0,  # Default confidence for secondary markets
                 reasoning=prediction.key_factors,
                 min_ev=min_ev,
-                min_confidence=min_confidence
+                min_confidence=min_confidence,
             )
             recommendations.append(rec)
 
@@ -425,39 +485,48 @@ def generate_recommendations(
                 confidence=65.0,
                 reasoning=prediction.key_factors,
                 min_ev=min_ev,
-                min_confidence=min_confidence
+                min_confidence=min_confidence,
             )
             recommendations.append(rec)
 
     return recommendations
 
 
-def output_table(prediction: MatchPrediction, market_avg: dict, recommendations: List[BetRecommendation]):
+def output_table(
+    prediction: MatchPrediction,
+    market_avg: dict,
+    recommendations: List[BetRecommendation],
+):
     """Output results as formatted table"""
     # Match info panel
-    console.print(Panel(
-        f"[bold]{prediction.home_team}[/bold] vs [bold]{prediction.away_team}[/bold]\n"
-        f"Model: {prediction.home_win_prob * 100:.1f}% / {prediction.draw_prob * 100:.1f}% / {prediction.away_win_prob * 100:.1f}%\n"
-        f"Over 2.5: {prediction.over_2_5_prob * 100:.1f}% | BTTS: {prediction.btts_prob * 100:.1f}%",
-        title="📊 Model Prediction",
-        box=box.ROUNDED
-    ))
+    console.print(
+        Panel(
+            f"[bold]{prediction.home_team}[/bold] vs [bold]{prediction.away_team}[/bold]\n"
+            f"Model: {prediction.home_win_prob * 100:.1f}% / {prediction.draw_prob * 100:.1f}% / {prediction.away_win_prob * 100:.1f}%\n"
+            f"Over 2.5: {prediction.over_2_5_prob * 100:.1f}% | BTTS: {prediction.btts_prob * 100:.1f}%",
+            title="📊 Model Prediction",
+            box=box.ROUNDED,
+        )
+    )
 
     # Market averages
-    if market_avg['num_bookmakers'] > 0:
-        avg_table = Table(title=f"Market Average ({market_avg['num_bookmakers']} bookmakers)", box=box.SIMPLE)
+    if market_avg["num_bookmakers"] > 0:
+        avg_table = Table(
+            title=f"Market Average ({market_avg['num_bookmakers']} bookmakers)",
+            box=box.SIMPLE,
+        )
         avg_table.add_column("Market", style="cyan")
         avg_table.add_column("Average Odds", justify="right")
 
-        if market_avg['home_win']:
+        if market_avg["home_win"]:
             avg_table.add_row("Home Win", f"{market_avg['home_win']:.2f}")
-        if market_avg['draw']:
+        if market_avg["draw"]:
             avg_table.add_row("Draw", f"{market_avg['draw']:.2f}")
-        if market_avg['away_win']:
+        if market_avg["away_win"]:
             avg_table.add_row("Away Win", f"{market_avg['away_win']:.2f}")
-        if market_avg['over_2_5']:
+        if market_avg["over_2_5"]:
             avg_table.add_row("Over 2.5", f"{market_avg['over_2_5']:.2f}")
-        if market_avg['btts_yes']:
+        if market_avg["btts_yes"]:
             avg_table.add_row("BTTS Yes", f"{market_avg['btts_yes']:.2f}")
 
         console.print(avg_table)
@@ -477,13 +546,15 @@ def output_table(prediction: MatchPrediction, market_avg: dict, recommendations:
         bets_table.add_column("Confidence", justify="right")
 
         for bet in value_bets[:10]:  # Top 10
-            conf_icon = "🟢" if bet.confidence >= 70 else "🟡" if bet.confidence >= 60 else "🔴"
+            conf_icon = (
+                "🟢" if bet.confidence >= 70 else "🟡" if bet.confidence >= 60 else "🔴"
+            )
             bets_table.add_row(
                 bet.market,
                 bet.site_name,
                 f"{bet.odds:.2f}",
                 format_ev_display(bet.ev_percentage),
-                f"{conf_icon} {bet.confidence:.0f}%"
+                f"{conf_icon} {bet.confidence:.0f}%",
             )
 
         console.print(bets_table)
@@ -497,36 +568,42 @@ def output_table(prediction: MatchPrediction, market_avg: dict, recommendations:
         console.print("[yellow]⚠️  No value bets found matching your criteria[/yellow]")
 
 
-def output_json(prediction: MatchPrediction, market_avg: dict, recommendations: List[BetRecommendation]):
+def output_json(
+    prediction: MatchPrediction,
+    market_avg: dict,
+    recommendations: List[BetRecommendation],
+):
     """Output results as JSON"""
     value_bets = find_best_value_bets(recommendations)
 
     result = {
-        'match': {
-            'home_team': prediction.home_team,
-            'away_team': prediction.away_team,
-            'probabilities': {
-                'home_win': round(prediction.home_win_prob, 4),
-                'draw': round(prediction.draw_prob, 4),
-                'away_win': round(prediction.away_win_prob, 4),
-                'over_2_5': round(prediction.over_2_5_prob, 4),
-                'btts': round(prediction.btts_prob, 4),
-            }
+        "match": {
+            "home_team": prediction.home_team,
+            "away_team": prediction.away_team,
+            "probabilities": {
+                "home_win": round(prediction.home_win_prob, 4),
+                "draw": round(prediction.draw_prob, 4),
+                "away_win": round(prediction.away_win_prob, 4),
+                "over_2_5": round(prediction.over_2_5_prob, 4),
+                "btts": round(prediction.btts_prob, 4),
+            },
         },
-        'market_averages': {k: round(v, 2) if isinstance(v, float) else v for k, v in market_avg.items()},
-        'value_bets': [
+        "market_averages": {
+            k: round(v, 2) if isinstance(v, float) else v for k, v in market_avg.items()
+        },
+        "value_bets": [
             {
-                'market': b.market,
-                'site': b.site,
-                'site_name': b.site_name,
-                'odds': b.odds,
-                'probability': round(b.probability, 4),
-                'ev_percentage': round(b.ev_percentage, 2),
-                'confidence': round(b.confidence, 2),
+                "market": b.market,
+                "site": b.site,
+                "site_name": b.site_name,
+                "odds": b.odds,
+                "probability": round(b.probability, 4),
+                "ev_percentage": round(b.ev_percentage, 2),
+                "confidence": round(b.confidence, 2),
             }
             for b in value_bets[:10]
         ],
-        'key_factors': prediction.key_factors,
+        "key_factors": prediction.key_factors,
     }
 
     console.print(json.dumps(result, indent=2))
@@ -543,24 +620,26 @@ def output_csv(recommendations: List[BetRecommendation]):
     writer = csv.writer(output)
 
     # Header
-    writer.writerow([
-        'Market', 'Site', 'Odds', 'Probability', 'EV%', 'Confidence', 'IsValueBet'
-    ])
+    writer.writerow(
+        ["Market", "Site", "Odds", "Probability", "EV%", "Confidence", "IsValueBet"]
+    )
 
     # Data rows
     for bet in value_bets:
-        writer.writerow([
-            bet.market,
-            bet.site_name,
-            bet.odds,
-            round(bet.probability, 4),
-            round(bet.ev_percentage, 2),
-            round(bet.confidence, 2),
-            bet.is_value_bet
-        ])
+        writer.writerow(
+            [
+                bet.market,
+                bet.site_name,
+                bet.odds,
+                round(bet.probability, 4),
+                round(bet.ev_percentage, 2),
+                round(bet.confidence, 2),
+                bet.is_value_bet,
+            ]
+        )
 
     console.print(output.getvalue())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

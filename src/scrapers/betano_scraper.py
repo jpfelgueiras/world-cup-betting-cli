@@ -16,31 +16,29 @@ For production use, consider:
 
 from datetime import datetime, timedelta
 from typing import List, Optional
+
 from bs4 import BeautifulSoup
 
-from .base_scraper import BaseScraper, OddsData, ScraperError
 from ..config import BETTING_SITES
+from .base_scraper import BaseScraper, OddsData, ScraperError
 
 
 class BetanoScraper(BaseScraper):
     """Scraper for Betano.pt"""
 
     def __init__(self):
-        config = BETTING_SITES.get('betano', {})
+        config = BETTING_SITES.get("betano", {})
         super().__init__(
-            site_key='betano',
-            site_name=config.get('name', 'Betano.pt'),
-            base_url=config.get('url', 'https://www.betano.pt'),
-            rate_limit_seconds=config.get('rate_limit_seconds', 5)
+            site_key="betano",
+            site_name=config.get("name", "Betano.pt"),
+            base_url=config.get("url", "https://www.betano.pt"),
+            rate_limit_seconds=config.get("rate_limit_seconds", 5),
         )
 
-        self.sports_url = config.get('sports_url', 'https://www.betano.pt/sport/')
+        self.sports_url = config.get("sports_url", "https://www.betano.pt/sport/")
 
     def get_match_odds(
-        self,
-        home_team: str,
-        away_team: str,
-        match_date: Optional[datetime] = None
+        self, home_team: str, away_team: str, match_date: Optional[datetime] = None
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
@@ -65,11 +63,11 @@ class BetanoScraper(BaseScraper):
             response = self._make_request(url)
 
             # Parse HTML (real implementation would extract actual matches)
-            soup = BeautifulSoup(response.text, 'lxml')
+            soup = BeautifulSoup(response.text, "lxml")
 
             # Find match elements (selectors would need to be updated based on actual site structure)
             # This is pseudocode - actual selectors depend on Betano's HTML structure
-            match_elements = soup.select('.match-item, .event-row, [data-match-id]')
+            match_elements = soup.select(".match-item, .event-row, [data-match-id]")
 
             for elem in match_elements[:50]:  # Limit to first 50 matches
                 try:
@@ -101,10 +99,7 @@ class BetanoScraper(BaseScraper):
         return None
 
     def _create_mock_odds(
-        self,
-        home_team: str,
-        away_team: str,
-        match_date: Optional[datetime] = None
+        self, home_team: str, away_team: str, match_date: Optional[datetime] = None
     ) -> OddsData:
         """Create mock odds data for demonstration"""
 
@@ -122,7 +117,7 @@ class BetanoScraper(BaseScraper):
             home_team=home_team,
             away_team=away_team,
             match_date=match_date,
-            site='betano',
+            site="betano",
             site_name=self.site_name,
             home_win=round(base_home, 2),
             draw=round(base_draw, 2),
@@ -138,14 +133,14 @@ class BetanoScraper(BaseScraper):
         """Generate mock upcoming matches for demonstration"""
 
         teams = [
-            ('Portugal', 'Brazil'),
-            ('Spain', 'Germany'),
-            ('France', 'Argentina'),
-            ('England', 'Italy'),
-            ('Netherlands', 'Belgium'),
-            ('Croatia', 'Uruguay'),
-            ('Morocco', 'Japan'),
-            ('USA', 'Mexico'),
+            ("Portugal", "Brazil"),
+            ("Spain", "Germany"),
+            ("France", "Argentina"),
+            ("England", "Italy"),
+            ("Netherlands", "Belgium"),
+            ("Croatia", "Uruguay"),
+            ("Morocco", "Japan"),
+            ("USA", "Mexico"),
         ]
 
         matches = []

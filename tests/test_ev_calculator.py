@@ -7,16 +7,16 @@ Tests all functions in src/utils/ev_calculator.py
 import pytest
 
 from src.utils.ev_calculator import (
+    BetRecommendation,
+    analyze_bet,
+    calculate_confidence_from_variance,
     calculate_ev,
     calculate_implied_probability,
     calculate_market_average,
     calculate_odds_discrepancy,
-    is_value_bet,
-    analyze_bet,
     find_best_value_bets,
     format_ev_display,
-    calculate_confidence_from_variance,
-    BetRecommendation,
+    is_value_bet,
 )
 
 
@@ -167,10 +167,7 @@ class TestIsValueBet:
     def test_custom_thresholds(self):
         """Test with custom thresholds"""
         result = is_value_bet(
-            ev_percentage=6.0,
-            confidence=65.0,
-            min_ev=5.0,
-            min_confidence=60.0
+            ev_percentage=6.0, confidence=65.0, min_ev=5.0, min_confidence=60.0
         )
         assert result is True
 
@@ -194,7 +191,7 @@ class TestAnalyzeBet:
             confidence=72.0,
             reasoning=["Team in good form"],
             min_ev=5.0,
-            min_confidence=60.0
+            min_confidence=60.0,
         )
 
         assert rec.market == "1X2 - Home Win"
@@ -217,7 +214,7 @@ class TestAnalyzeBet:
             confidence=65.0,
             reasoning=[],
             min_ev=5.0,
-            min_confidence=60.0
+            min_confidence=60.0,
         )
 
         assert rec.is_value_bet is False
@@ -235,7 +232,7 @@ class TestAnalyzeBet:
             confidence=68.0,
             reasoning=["High scoring teams"],
             min_ev=3.0,
-            min_confidence=65.0
+            min_confidence=65.0,
         )
 
         # EV = (0.55 × 1.95) - 1 = 0.0725 = 7.25%
@@ -250,23 +247,43 @@ class TestFindBestValueBets:
         """Test filtering and sorting value bets"""
         recommendations = [
             BetRecommendation(
-                market="Home Win", site="betano", site_name="Betano.pt",
-                odds=2.00, probability=0.55, ev_percentage=10.0,
-                confidence=70.0, reasoning=[], is_value_bet=True
+                market="Home Win",
+                site="betano",
+                site_name="Betano.pt",
+                odds=2.00,
+                probability=0.55,
+                ev_percentage=10.0,
+                confidence=70.0,
+                reasoning=[],
+                is_value_bet=True,
             ),
             BetRecommendation(
-                market="Away Win", site="betclic", site_name="Betclic.pt",
-                odds=1.80, probability=0.45, ev_percentage=-19.0,
-                confidence=65.0, reasoning=[], is_value_bet=False
+                market="Away Win",
+                site="betclic",
+                site_name="Betclic.pt",
+                odds=1.80,
+                probability=0.45,
+                ev_percentage=-19.0,
+                confidence=65.0,
+                reasoning=[],
+                is_value_bet=False,
             ),
             BetRecommendation(
-                market="Draw", site="solverde", site_name="Solverde.pt",
-                odds=3.50, probability=0.32, ev_percentage=12.0,
-                confidence=62.0, reasoning=[], is_value_bet=True
+                market="Draw",
+                site="solverde",
+                site_name="Solverde.pt",
+                odds=3.50,
+                probability=0.32,
+                ev_percentage=12.0,
+                confidence=62.0,
+                reasoning=[],
+                is_value_bet=True,
             ),
         ]
 
-        value_bets = find_best_value_bets(recommendations, min_ev=5.0, min_confidence=60.0)
+        value_bets = find_best_value_bets(
+            recommendations, min_ev=5.0, min_confidence=60.0
+        )
 
         # Should return 2 value bets, sorted by EV descending
         assert len(value_bets) == 2
@@ -277,9 +294,15 @@ class TestFindBestValueBets:
         """Test when no bets qualify"""
         recommendations = [
             BetRecommendation(
-                market="Home Win", site="betano", site_name="Betano.pt",
-                odds=1.50, probability=0.40, ev_percentage=-40.0,
-                confidence=50.0, reasoning=[], is_value_bet=False
+                market="Home Win",
+                site="betano",
+                site_name="Betano.pt",
+                odds=1.50,
+                probability=0.40,
+                ev_percentage=-40.0,
+                confidence=50.0,
+                reasoning=[],
+                is_value_bet=False,
             ),
         ]
 
@@ -328,7 +351,9 @@ class TestCalculateConfidenceFromVariance:
         """Test low variance with large sample size = high confidence"""
         predictions = [0.50, 0.51, 0.49, 0.50, 0.51, 0.50, 0.49, 0.50, 0.51, 0.50]
         confidence = calculate_confidence_from_variance(predictions, sample_size=100)
-        assert confidence > 45  # Should be moderate-high confidence (variance is very low)
+        assert (
+            confidence > 45
+        )  # Should be moderate-high confidence (variance is very low)
 
     def test_high_variance_small_sample(self):
         """Test high variance with small sample = low confidence"""
@@ -363,7 +388,7 @@ class TestBetRecommendationDataclass:
             ev_percentage=8.0,
             confidence=70.0,
             reasoning=["Good form", "H2H advantage"],
-            is_value_bet=True
+            is_value_bet=True,
         )
 
         assert rec.market == "1X2"
@@ -381,7 +406,7 @@ class TestBetRecommendationDataclass:
             probability=0.50,
             ev_percentage=0.0,
             confidence=50.0,
-            reasoning=[]
+            reasoning=[],
         )
 
         assert rec.is_value_bet is True  # Default is True

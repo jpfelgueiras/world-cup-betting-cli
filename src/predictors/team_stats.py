@@ -3,13 +3,14 @@ Team statistics and data models for prediction engine
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
 
 
 @dataclass
 class TeamData:
     """Raw team data from various sources"""
+
     name: str
     country_code: str = ""
     fifa_ranking: int = 0
@@ -78,6 +79,7 @@ class TeamData:
 @dataclass
 class TeamStats:
     """Computed statistics for prediction modeling"""
+
     team_data: TeamData
 
     # Computed metrics
@@ -131,17 +133,14 @@ class TeamStats:
             cs_component = 50
 
         self.defense_strength = (
-            goal_component * 0.4
-            + xg_component * 0.3
-            + cs_component * 0.3
+            goal_component * 0.4 + xg_component * 0.3 + cs_component * 0.3
         )
 
     def _compute_overall_strength(self):
         """Calculate overall team strength"""
         # Weighted average of attack and defense
         self.overall_strength = (
-            self.attack_strength * 0.55
-            + self.defense_strength * 0.45
+            self.attack_strength * 0.55 + self.defense_strength * 0.45
         )
 
     def _compute_form_factor(self):
@@ -158,7 +157,7 @@ class TeamStats:
 
         self.form_factor = min(100, max(0, base_form + momentum_bonus))
 
-    def get_h2h_advantage(self, opponent_stats: 'TeamStats') -> float:
+    def get_h2h_advantage(self, opponent_stats: "TeamStats") -> float:
         """
         Calculate head-to-head advantage.
         Positive = this team has advantage, negative = opponent has advantage
@@ -190,7 +189,7 @@ class MatchContext:
         venue: str = "Neutral",
         tournament_stage: str = "Group Stage",
         is_must_win_home: bool = False,
-        is_must_win_away: bool = False
+        is_must_win_away: bool = False,
     ):
         self.home_team = home_team
         self.away_team = away_team

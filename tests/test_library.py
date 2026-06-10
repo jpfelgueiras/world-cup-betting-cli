@@ -4,8 +4,9 @@ Unit tests for Python Library Interface
 Tests the BettingInsights class and related models in src/library.py
 """
 
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 
 from src.library import (
     BettingInsights,
@@ -77,22 +78,24 @@ class TestMatchAnalysisResult:
             away_team="Away",
             value_bets=[
                 BetRecommendation(
-                    market="Test", site="test", site_name="Test",
-                    odds=2.0, probability=0.55, ev_percentage=10.0,
-                    confidence=70.0, reasoning=[], is_value_bet=True
+                    market="Test",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.55,
+                    ev_percentage=10.0,
+                    confidence=70.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 )
-            ]
+            ],
         )
 
         assert result.has_value_bets is True
 
     def test_has_value_bets_false(self):
         """Test has_value_bets when no value bets"""
-        result = MatchAnalysisResult(
-            home_team="Home",
-            away_team="Away",
-            value_bets=[]
-        )
+        result = MatchAnalysisResult(home_team="Home", away_team="Away", value_bets=[])
 
         assert result.has_value_bets is False
 
@@ -105,16 +108,28 @@ class TestMatchAnalysisResult:
             away_team="Away",
             value_bets=[
                 BetRecommendation(
-                    market="Low EV", site="test", site_name="Test",
-                    odds=2.0, probability=0.52, ev_percentage=4.0,
-                    confidence=65.0, reasoning=[], is_value_bet=True
+                    market="Low EV",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.52,
+                    ev_percentage=4.0,
+                    confidence=65.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
                 BetRecommendation(
-                    market="High EV", site="test", site_name="Test",
-                    odds=2.5, probability=0.50, ev_percentage=25.0,
-                    confidence=60.0, reasoning=[], is_value_bet=True
+                    market="High EV",
+                    site="test",
+                    site_name="Test",
+                    odds=2.5,
+                    probability=0.50,
+                    ev_percentage=25.0,
+                    confidence=60.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
-            ]
+            ],
         )
 
         best = result.get_best_value_bet()
@@ -125,11 +140,7 @@ class TestMatchAnalysisResult:
 
     def test_get_best_value_bet_empty(self):
         """Test getting best value bet when none exist"""
-        result = MatchAnalysisResult(
-            home_team="Home",
-            away_team="Away",
-            value_bets=[]
-        )
+        result = MatchAnalysisResult(home_team="Home", away_team="Away", value_bets=[])
 
         best = result.get_best_value_bet()
 
@@ -149,11 +160,11 @@ class TestMatchAnalysisResult:
         data = result.to_dict()
 
         assert isinstance(data, dict)
-        assert data['home_team'] == "Portugal"
-        assert data['away_team'] == "Brazil"
-        assert 'probabilities' in data
-        assert 'value_bets' in data
-        assert data['num_bookmakers'] == 3
+        assert data["home_team"] == "Portugal"
+        assert data["away_team"] == "Brazil"
+        assert "probabilities" in data
+        assert "value_bets" in data
+        assert data["num_bookmakers"] == 3
 
 
 class TestScanResult:
@@ -190,11 +201,17 @@ class TestScanResult:
             away_team="Team B",
             value_bets=[
                 BetRecommendation(
-                    market="M1", site="test", site_name="Test",
-                    odds=2.0, probability=0.55, ev_percentage=10.0,
-                    confidence=70.0, reasoning=[], is_value_bet=True
+                    market="M1",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.55,
+                    ev_percentage=10.0,
+                    confidence=70.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
-            ]
+            ],
         )
 
         match2 = MatchAnalysisResult(
@@ -202,16 +219,28 @@ class TestScanResult:
             away_team="Team D",
             value_bets=[
                 BetRecommendation(
-                    market="M2", site="test", site_name="Test",
-                    odds=2.0, probability=0.55, ev_percentage=15.0,
-                    confidence=70.0, reasoning=[], is_value_bet=True
+                    market="M2",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.55,
+                    ev_percentage=15.0,
+                    confidence=70.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
                 BetRecommendation(
-                    market="M3", site="test", site_name="Test",
-                    odds=2.0, probability=0.55, ev_percentage=8.0,
-                    confidence=70.0, reasoning=[], is_value_bet=True
+                    market="M3",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.55,
+                    ev_percentage=8.0,
+                    confidence=70.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
-            ]
+            ],
         )
 
         result = ScanResult(
@@ -235,16 +264,28 @@ class TestScanResult:
             away_team="B",
             value_bets=[
                 BetRecommendation(
-                    market="EV5", site="test", site_name="Test",
-                    odds=2.0, probability=0.52, ev_percentage=5.0,
-                    confidence=65.0, reasoning=[], is_value_bet=True
+                    market="EV5",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.52,
+                    ev_percentage=5.0,
+                    confidence=65.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
                 BetRecommendation(
-                    market="EV15", site="test", site_name="Test",
-                    odds=2.0, probability=0.57, ev_percentage=15.0,
-                    confidence=65.0, reasoning=[], is_value_bet=True
+                    market="EV15",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.57,
+                    ev_percentage=15.0,
+                    confidence=65.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
-            ]
+            ],
         )
 
         match2 = MatchAnalysisResult(
@@ -252,11 +293,17 @@ class TestScanResult:
             away_team="D",
             value_bets=[
                 BetRecommendation(
-                    market="EV20", site="test", site_name="Test",
-                    odds=2.0, probability=0.60, ev_percentage=20.0,
-                    confidence=65.0, reasoning=[], is_value_bet=True
+                    market="EV20",
+                    site="test",
+                    site_name="Test",
+                    odds=2.0,
+                    probability=0.60,
+                    ev_percentage=20.0,
+                    confidence=65.0,
+                    reasoning=[],
+                    is_value_bet=True,
                 ),
-            ]
+            ],
         )
 
         result = ScanResult(
@@ -281,9 +328,9 @@ class TestScanResult:
         data = result.to_dict()
 
         assert isinstance(data, dict)
-        assert data['total_matches'] == 10
-        assert data['matches_with_value_bets'] == 5
-        assert 'scan_date' in data
+        assert data["total_matches"] == 10
+        assert data["matches_with_value_bets"] == 5
+        assert "scan_date" in data
 
 
 class TestBettingInsights:
@@ -306,19 +353,14 @@ class TestBettingInsights:
 
     def test_init_with_custom_thresholds(self):
         """Test initialization with custom thresholds"""
-        insights = BettingInsights(
-            min_ev=10.0,
-            min_confidence=70.0
-        )
+        insights = BettingInsights(min_ev=10.0, min_confidence=70.0)
 
         assert insights.min_ev == 10.0
         assert insights.min_confidence == 70.0
 
     def test_init_with_specific_sites(self):
         """Test initialization with specific enabled sites"""
-        insights = BettingInsights(
-            enabled_sites=["betano"]
-        )
+        insights = BettingInsights(enabled_sites=["betano"])
 
         assert len(insights.scrapers) == 1
         assert insights.scrapers[0].site_key == "betano"
@@ -359,11 +401,13 @@ class TestBettingInsights:
         assert result.num_bookmakers >= 1
 
         # Should have at least one market average
-        has_avg = any([
-            result.market_avg_home is not None,
-            result.market_avg_draw is not None,
-            result.market_avg_away is not None,
-        ])
+        has_avg = any(
+            [
+                result.market_avg_home is not None,
+                result.market_avg_draw is not None,
+                result.market_avg_away is not None,
+            ]
+        )
         assert has_avg is True
 
     def test_analyze_match_custom_thresholds(self, insights):
@@ -372,7 +416,7 @@ class TestBettingInsights:
             "Portugal",
             "Brazil",
             min_ev=20.0,  # Very high threshold
-            min_confidence=80.0
+            min_confidence=80.0,
         )
 
         # With high thresholds, likely no value bets
@@ -408,9 +452,7 @@ class TestBettingInsights:
     def test_scan_with_custom_thresholds(self, insights):
         """Test scan with custom EV/confidence thresholds"""
         result = insights.scan_upcoming_matches(
-            days_ahead=7,
-            min_ev=10.0,
-            min_confidence=70.0
+            days_ahead=7, min_ev=10.0, min_confidence=70.0
         )
 
         assert isinstance(result, ScanResult)
@@ -423,20 +465,20 @@ class TestBettingInsights:
         assert len(bookmakers) > 0
 
         for bookmaker in bookmakers:
-            assert 'key' in bookmaker
-            assert 'name' in bookmaker
-            assert 'enabled' in bookmaker
+            assert "key" in bookmaker
+            assert "name" in bookmaker
+            assert "enabled" in bookmaker
 
     def test_get_bookmakers_has_required_fields(self, insights):
         """Test each bookmaker has required fields"""
         bookmakers = insights.get_bookmakers()
 
         for bookmaker in bookmakers:
-            assert 'key' in bookmaker
-            assert 'name' in bookmaker
-            assert 'url' in bookmaker
-            assert 'enabled' in bookmaker
-            assert 'rate_limit_seconds' in bookmaker
+            assert "key" in bookmaker
+            assert "name" in bookmaker
+            assert "url" in bookmaker
+            assert "enabled" in bookmaker
+            assert "rate_limit_seconds" in bookmaker
 
     def test_update_config_min_ev(self, insights):
         """Test updating min_ev configuration"""
@@ -466,9 +508,7 @@ class TestBettingInsights:
     def test_update_config_multiple_changes(self, insights):
         """Test updating multiple config values at once"""
         insights.update_config(
-            min_ev=8.0,
-            min_confidence=65.0,
-            enabled_sites=["betano", "betclic"]
+            min_ev=8.0, min_confidence=65.0, enabled_sites=["betano", "betclic"]
         )
 
         assert insights.min_ev == 8.0
@@ -508,10 +548,7 @@ class TestCreateInsights:
 
     def test_create_insights_kwargs_passed(self):
         """Test that kwargs are passed to BettingInsights"""
-        insights = create_insights(
-            min_ev=7.0,
-            enabled_sites=["solverde"]
-        )
+        insights = create_insights(min_ev=7.0, enabled_sites=["solverde"])
 
         assert insights.min_ev == 7.0
         assert len(insights.scrapers) == 1

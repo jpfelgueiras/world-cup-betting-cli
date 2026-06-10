@@ -4,25 +4,26 @@ Unit tests for REST API
 Tests FastAPI routes, models, and app configuration.
 """
 
-import pytest
 from datetime import datetime
+
+import pytest
 from fastapi.testclient import TestClient
 
-from src.api.app import create_app, app  # noqa: F401
+from src.api.app import app, create_app  # noqa: F401
+from src.api.models import ConfidenceLevels  # noqa: F401
+from src.api.models import HealthResponse  # noqa: F401
+from src.api.models import MatchAnalysisResponse  # noqa: F401
+from src.api.models import ScanResponse  # noqa: F401
 from src.api.models import (
-    MatchPredictionRequest,
-    ScanRequest,
     AnalysisConfig,
-    TeamProbabilities,
-    ConfidenceLevels,  # noqa: F401
-    MarketAverage,
-    ValueBet,
-    MatchAnalysisResponse,  # noqa: F401
-    ScanResponse,  # noqa: F401
-    HealthResponse,  # noqa: F401
     LibraryConfig,
-    SiteType,
+    MarketAverage,
+    MatchPredictionRequest,
     RiskTolerance,
+    ScanRequest,
+    SiteType,
+    TeamProbabilities,
+    ValueBet,
 )
 
 
@@ -32,9 +33,7 @@ class TestAPIModels:
     def test_match_prediction_request_valid(self):
         """Test creating valid MatchPredictionRequest"""
         request = MatchPredictionRequest(
-            home_team="Portugal",
-            away_team="Brazil",
-            site=SiteType.ALL
+            home_team="Portugal", away_team="Brazil", site=SiteType.ALL
         )
 
         assert request.home_team == "Portugal"
@@ -49,7 +48,7 @@ class TestAPIModels:
             home_team="Portugal",
             away_team="Brazil",
             match_date=match_date,
-            site=SiteType.BETANO
+            site=SiteType.BETANO,
         )
 
         assert request.match_date == match_date
@@ -58,10 +57,7 @@ class TestAPIModels:
     def test_match_prediction_request_empty_team_fails(self):
         """Test that empty team name fails validation"""
         with pytest.raises(Exception):  # ValidationError
-            MatchPredictionRequest(
-                home_team="",
-                away_team="Brazil"
-            )
+            MatchPredictionRequest(home_team="", away_team="Brazil")
 
     def test_scan_request_defaults(self):
         """Test ScanRequest default values"""
@@ -75,10 +71,7 @@ class TestAPIModels:
     def test_scan_request_custom_values(self):
         """Test ScanRequest with custom values"""
         request = ScanRequest(
-            days_ahead=14,
-            min_ev=10.0,
-            min_confidence=70.0,
-            site=SiteType.BETCLIC
+            days_ahead=14, min_ev=10.0, min_confidence=70.0, site=SiteType.BETCLIC
         )
 
         assert request.days_ahead == 14
@@ -121,11 +114,7 @@ class TestAPIModels:
     def test_team_probabilities_valid_range(self):
         """Test TeamProbabilities values are in valid range"""
         probs = TeamProbabilities(
-            home_win=0.45,
-            draw=0.28,
-            away_win=0.27,
-            over_2_5=0.62,
-            btts=0.55
+            home_win=0.45, draw=0.28, away_win=0.27, over_2_5=0.62, btts=0.55
         )
 
         assert 0 <= probs.home_win <= 1
@@ -136,11 +125,7 @@ class TestAPIModels:
         """Test that out-of-range probabilities fail validation"""
         with pytest.raises(Exception):
             TeamProbabilities(
-                home_win=1.5,  # > 1.0
-                draw=0.3,
-                away_win=0.2,
-                over_2_5=0.5,
-                btts=0.5
+                home_win=1.5, draw=0.3, away_win=0.2, over_2_5=0.5, btts=0.5  # > 1.0
             )
 
     def test_value_bet_creation(self):
@@ -154,7 +139,7 @@ class TestAPIModels:
             ev_percentage=8.0,
             confidence=72.0,
             is_value_bet=True,
-            reasoning=["Good form"]
+            reasoning=["Good form"],
         )
 
         assert bet.market == "1X2 - Home Win"
@@ -172,7 +157,7 @@ class TestAPIModels:
                 probability=0.5,
                 ev_percentage=5.0,
                 confidence=60.0,
-                is_value_bet=False
+                is_value_bet=False,
             )
 
     def test_market_average_creation(self):
@@ -183,7 +168,7 @@ class TestAPIModels:
             away_win=2.80,
             over_2_5=1.85,
             btts_yes=1.70,
-            num_bookmakers=3
+            num_bookmakers=3,
         )
 
         assert avg.home_win == pytest.approx(2.10, rel=0.01)
@@ -197,7 +182,7 @@ class TestAPIModels:
             away_win=None,
             over_2_5=None,
             btts_yes=None,
-            num_bookmakers=1
+            num_bookmakers=1,
         )
 
         assert avg.home_win == pytest.approx(2.10, rel=0.01)
@@ -210,7 +195,7 @@ class TestAPIModels:
             min_confidence=65.0,
             enabled_sites=["betano", "betclic"],
             cache_enabled=True,
-            cache_ttl_hours=2
+            cache_ttl_hours=2,
         )
 
         assert config.min_ev == 8.0
@@ -352,7 +337,7 @@ class TestConfigEndpoint:
             "min_confidence": 70.0,
             "enabled_sites": ["betano"],
             "cache_enabled": False,
-            "cache_ttl_hours": 2
+            "cache_ttl_hours": 2,
         }
 
         response = client.put("/api/v1/config", json=new_config)
@@ -373,20 +358,14 @@ class TestPredictEndpoint:
 
     def test_predict_valid_request_returns_200(self, client):
         """Test predict endpoint with valid request"""
-        request_data = {
-            "home_team": "Portugal",
-            "away_team": "Brazil"
-        }
+        request_data = {"home_team": "Portugal", "away_team": "Brazil"}
 
         response = client.post("/api/v1/predict", json=request_data)
         assert response.status_code == 200
 
     def test_predict_response_has_required_fields(self, client):
         """Test predict response structure"""
-        request_data = {
-            "home_team": "Portugal",
-            "away_team": "Brazil"
-        }
+        request_data = {"home_team": "Portugal", "away_team": "Brazil"}
 
         response = client.post("/api/v1/predict", json=request_data)
         data = response.json()
@@ -405,7 +384,7 @@ class TestPredictEndpoint:
         request_data = {
             "home_team": "Portugal",
             "away_team": "Brazil",
-            "site": "betano"
+            "site": "betano",
         }
 
         response = client.post("/api/v1/predict", json=request_data)
@@ -413,10 +392,7 @@ class TestPredictEndpoint:
 
     def test_predict_empty_team_name_fails(self, client):
         """Test predict with empty team name returns 422"""
-        request_data = {
-            "home_team": "",
-            "away_team": "Brazil"
-        }
+        request_data = {"home_team": "", "away_team": "Brazil"}
 
         response = client.post("/api/v1/predict", json=request_data)
         assert response.status_code == 422  # Validation error
@@ -458,20 +434,14 @@ class TestScanEndpoint:
 
     def test_scan_with_custom_days_ahead(self, client):
         """Test scan with custom days_ahead"""
-        request_data = {
-            "days_ahead": 14,
-            "min_ev": 8.0
-        }
+        request_data = {"days_ahead": 14, "min_ev": 8.0}
 
         response = client.post("/api/v1/scan", json=request_data)
         assert response.status_code == 200
 
     def test_scan_with_site_filter(self, client):
         """Test scan with specific site filter"""
-        request_data = {
-            "site": "betclic",
-            "days_ahead": 7
-        }
+        request_data = {"site": "betclic", "days_ahead": 7}
 
         response = client.post("/api/v1/scan", json=request_data)
         assert response.status_code == 200
@@ -479,9 +449,7 @@ class TestScanEndpoint:
     def test_scan_days_ahead_validation(self, client):
         """Test scan validates days_ahead range"""
         # Too high - should fail or be clamped
-        request_data = {
-            "days_ahead": 50  # Max is 30
-        }
+        request_data = {"days_ahead": 50}  # Max is 30
 
         response = client.post("/api/v1/scan", json=request_data)
         # Should either fail validation or succeed with clamped value
@@ -501,8 +469,10 @@ class TestCORS:
         response = client.get("/api/v1/health")
 
         # FastAPI's CORSMiddleware adds these headers
-        assert "access-control-allow-origin" in response.headers or \
-               response.status_code == 200  # May not show on same-origin
+        assert (
+            "access-control-allow-origin" in response.headers
+            or response.status_code == 200
+        )  # May not show on same-origin
 
 
 class TestErrorHandling:
@@ -518,16 +488,13 @@ class TestErrorHandling:
         response = client.post(
             "/api/v1/predict",
             content="not valid json",
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         assert response.status_code == 422
 
     def test_error_response_has_standard_format(self, client):
         """Test that error responses have standard format"""
-        request_data = {
-            "home_team": "",  # Invalid
-            "away_team": "Brazil"
-        }
+        request_data = {"home_team": "", "away_team": "Brazil"}  # Invalid
 
         response = client.post("/api/v1/predict", json=request_data)
         data = response.json()

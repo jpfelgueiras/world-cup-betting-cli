@@ -5,14 +5,15 @@ Tests base scraper and individual site scrapers.
 Note: These tests use mock data since real scraping requires live sites.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
+import pytest
+
 from src.scrapers.base_scraper import (
     BaseScraper,
-    ScraperError,
     OddsData,
+    ScraperError,
 )
 from src.scrapers.betano_scraper import BetanoScraper
 from src.scrapers.betclic_scraper import BetclicScraper
@@ -140,12 +141,12 @@ class TestOddsData:
         result = odds.to_dict()
 
         assert isinstance(result, dict)
-        assert result['match_id'] == "test_123"
-        assert result['home_team'] == "Portugal"
-        assert result['away_team'] == "Brazil"
-        assert result['site'] == "betano"
-        assert result['home_win'] == pytest.approx(2.10, rel=0.01)
-        assert 'last_updated' in result
+        assert result["match_id"] == "test_123"
+        assert result["home_team"] == "Portugal"
+        assert result["away_team"] == "Brazil"
+        assert result["site"] == "betano"
+        assert result["home_win"] == pytest.approx(2.10, rel=0.01)
+        assert "last_updated" in result
 
     def test_last_updated_auto_set(self):
         """Test that last_updated is auto-set if not provided"""
@@ -168,6 +169,7 @@ class TestBaseScraper:
     @pytest.fixture
     def mock_scraper(self):
         """Create a concrete implementation of BaseScraper for testing"""
+
         class ConcreteScraper(BaseScraper):
             def get_match_odds(self, home_team, away_team, match_date=None):
                 return None
@@ -179,7 +181,7 @@ class TestBaseScraper:
             site_key="test",
             site_name="Test Site",
             base_url="https://test.com",
-            rate_limit_seconds=1
+            rate_limit_seconds=1,
         )
 
     def test_init_sets_attributes(self, mock_scraper):
@@ -193,7 +195,7 @@ class TestBaseScraper:
         """Test that session is created on first access"""
         session = mock_scraper.session
         assert session is not None
-        assert hasattr(session, 'headers')
+        assert hasattr(session, "headers")
 
     def test_session_reuse(self, mock_scraper):
         """Test that same session is reused"""
@@ -205,18 +207,18 @@ class TestBaseScraper:
         """Test that session has retry configuration"""
         session = mock_scraper.session
         # Check adapters are mounted
-        assert 'https://' in session.adapters
-        assert 'http://' in session.adapters
+        assert "https://" in session.adapters
+        assert "http://" in session.adapters
 
     def test_rotate_user_agent(self, mock_scraper):
         """Test user agent rotation"""
 
         mock_scraper._rotate_user_agent()
-        new_agent = mock_scraper.session.headers.get('User-Agent')
+        new_agent = mock_scraper.session.headers.get("User-Agent")
 
         # Agent should be set (may be same by chance, but should be valid)
         assert new_agent is not None
-        assert new_agent.startswith('Mozilla/5.0')
+        assert new_agent.startswith("Mozilla/5.0")
 
     def test_respect_rate_limit_first_request(self, mock_scraper):
         """Test rate limiting allows first request immediately"""
@@ -244,7 +246,7 @@ class TestBaseScraper:
         # Should have waited close to rate_limit_seconds
         assert elapsed >= 0.8  # Allow some tolerance
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_make_request_success(self, mock_request, mock_scraper):
         """Test successful HTTP request"""
         mock_response = Mock()
@@ -257,10 +259,11 @@ class TestBaseScraper:
         assert response.status_code == 200
         mock_request.assert_called_once()
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_make_request_timeout(self, mock_request, mock_scraper):
         """Test timeout error handling"""
         import requests
+
         mock_request.side_effect = requests.exceptions.Timeout()
 
         with pytest.raises(ScraperError) as exc_info:
@@ -268,10 +271,11 @@ class TestBaseScraper:
 
         assert "timed out" in str(exc_info.value).lower()
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_make_request_connection_error(self, mock_request, mock_scraper):
         """Test connection error handling"""
         import requests
+
         mock_request.side_effect = requests.exceptions.ConnectionError()
 
         with pytest.raises(ScraperError) as exc_info:
@@ -279,10 +283,11 @@ class TestBaseScraper:
 
         assert "connection" in str(exc_info.value).lower()
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_make_request_403_forbidden(self, mock_request, mock_scraper):
         """Test 403 forbidden error handling"""
         import requests
+
         mock_response = Mock()
         mock_response.status_code = 403
         mock_request.side_effect = requests.HTTPError(response=mock_response)
@@ -292,10 +297,11 @@ class TestBaseScraper:
 
         assert "forbidden" in str(exc_info.value).lower()
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_make_request_429_rate_limited(self, mock_request, mock_scraper):
         """Test 429 rate limit error handling"""
         import requests
+
         mock_response = Mock()
         mock_response.status_code = 429
         mock_request.side_effect = requests.HTTPError(response=mock_response)
@@ -305,10 +311,11 @@ class TestBaseScraper:
 
         assert "rate limited" in str(exc_info.value).lower()
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_make_request_404_not_found(self, mock_request, mock_scraper):
         """Test 404 not found error handling"""
         import requests
+
         mock_response = Mock()
         mock_response.status_code = 404
         mock_request.side_effect = requests.HTTPError(response=mock_response)
@@ -382,10 +389,10 @@ class TestBaseScraper:
         """Test getting scraper status"""
         status = mock_scraper.get_status()
 
-        assert status['site'] == "test"
-        assert status['site_name'] == "Test Site"
-        assert status['base_url'] == "https://test.com"
-        assert status['rate_limit_seconds'] == 1
+        assert status["site"] == "test"
+        assert status["site_name"] == "Test Site"
+        assert status["base_url"] == "https://test.com"
+        assert status["rate_limit_seconds"] == 1
 
 
 class TestBetanoScraper:
@@ -451,7 +458,7 @@ class TestBetanoScraper:
         assert odds.away_win > 1.0
 
         # Implied probabilities should sum to > 1 (bookmaker margin)
-        implied_sum = (1 / odds.home_win + 1 / odds.draw + 1 / odds.away_win)
+        implied_sum = 1 / odds.home_win + 1 / odds.draw + 1 / odds.away_win
         assert implied_sum > 1.0
         # Note: removed upper bound check as it can vary with random odds
 
@@ -527,6 +534,7 @@ class TestScraperError:
 
     def test_raise_and_catch(self):
         """Test raising and catching ScraperError"""
+
         def failing_function():
             raise ScraperError("Scraping failed")
 

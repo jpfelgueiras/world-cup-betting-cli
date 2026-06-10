@@ -8,12 +8,12 @@ All scrapers must:
 - Return standardized odds data
 """
 
-import time
 import random
+import time
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -24,12 +24,14 @@ from ..config import USER_AGENTS
 
 class ScraperError(Exception):
     """Custom exception for scraper errors"""
+
     pass
 
 
 @dataclass
 class OddsData:
     """Standardized odds data structure"""
+
     match_id: str
     home_team: str
     away_team: str
@@ -78,21 +80,23 @@ class OddsData:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
-            'match_id': self.match_id,
-            'home_team': self.home_team,
-            'away_team': self.away_team,
-            'match_date': self.match_date.isoformat() if self.match_date else None,
-            'site': self.site,
-            'site_name': self.site_name,
-            'home_win': self.home_win,
-            'draw': self.draw,
-            'away_win': self.away_win,
-            'over_2_5': self.over_2_5,
-            'under_2_5': self.under_2_5,
-            'btts_yes': self.btts_yes,
-            'btts_no': self.btts_no,
-            'last_updated': self.last_updated.isoformat() if self.last_updated else None,
-            'url': self.url,
+            "match_id": self.match_id,
+            "home_team": self.home_team,
+            "away_team": self.away_team,
+            "match_date": self.match_date.isoformat() if self.match_date else None,
+            "site": self.site,
+            "site_name": self.site_name,
+            "home_win": self.home_win,
+            "draw": self.draw,
+            "away_win": self.away_win,
+            "over_2_5": self.over_2_5,
+            "under_2_5": self.under_2_5,
+            "btts_yes": self.btts_yes,
+            "btts_no": self.btts_no,
+            "last_updated": (
+                self.last_updated.isoformat() if self.last_updated else None
+            ),
+            "url": self.url,
         }
 
 
@@ -108,11 +112,7 @@ class BaseScraper(ABC):
     """
 
     def __init__(
-        self,
-        site_key: str,
-        site_name: str,
-        base_url: str,
-        rate_limit_seconds: int = 5
+        self, site_key: str, site_name: str, base_url: str, rate_limit_seconds: int = 5
     ):
         self.site_key = site_key
         self.site_name = site_name
@@ -134,7 +134,7 @@ class BaseScraper(ABC):
                 total=3,
                 backoff_factor=1,
                 status_forcelist=[429, 500, 502, 503, 504],
-                allowed_methods=["GET"]
+                allowed_methods=["GET"],
             )
 
             adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -142,20 +142,22 @@ class BaseScraper(ABC):
             self._session.mount("https://", adapter)
 
             # Set default headers
-            self._session.headers.update({
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'pt-PT,pt;q=0.9,en;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
-            })
+            self._session.headers.update(
+                {
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                    "Accept-Language": "pt-PT,pt;q=0.9,en;q=0.8",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Connection": "keep-alive",
+                    "Upgrade-Insecure-Requests": "1",
+                }
+            )
 
         return self._session
 
     def _rotate_user_agent(self):
         """Rotate user agent to avoid detection"""
         user_agent = random.choice(USER_AGENTS)
-        self.session.headers['User-Agent'] = user_agent
+        self.session.headers["User-Agent"] = user_agent
 
     def _respect_rate_limit(self):
         """Enforce rate limiting between requests"""
@@ -169,10 +171,10 @@ class BaseScraper(ABC):
     def _make_request(
         self,
         url: str,
-        method: str = 'GET',
+        method: str = "GET",
         params: Optional[Dict] = None,
         data: Optional[Dict] = None,
-        timeout: int = 30
+        timeout: int = 30,
     ) -> requests.Response:
         """
         Make HTTP request with rate limiting and error handling.
@@ -182,11 +184,7 @@ class BaseScraper(ABC):
 
         try:
             response = self.session.request(
-                method=method,
-                url=url,
-                params=params,
-                data=data,
-                timeout=timeout
+                method=method, url=url, params=params, data=data, timeout=timeout
             )
 
             response.raise_for_status()
@@ -198,22 +196,25 @@ class BaseScraper(ABC):
             raise ScraperError(f"Connection error for {self.site_name}: {url}")
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 403:
-                raise ScraperError(f"Access forbidden by {self.site_name}. May be blocked.")
+                raise ScraperError(
+                    f"Access forbidden by {self.site_name}. May be blocked."
+                )
             elif e.response.status_code == 404:
                 raise ScraperError(f"Page not found: {url}")
             elif e.response.status_code == 429:
-                raise ScraperError(f"Rate limited by {self.site_name}. Wait longer between requests.")
+                raise ScraperError(
+                    f"Rate limited by {self.site_name}. Wait longer between requests."
+                )
             else:
-                raise ScraperError(f"HTTP error {e.response.status_code} from {self.site_name}")
+                raise ScraperError(
+                    f"HTTP error {e.response.status_code} from {self.site_name}"
+                )
         except Exception as e:
             raise ScraperError(f"Unexpected error scraping {self.site_name}: {str(e)}")
 
     @abstractmethod
     def get_match_odds(
-        self,
-        home_team: str,
-        away_team: str,
-        match_date: Optional[datetime] = None
+        self, home_team: str, away_team: str, match_date: Optional[datetime] = None
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
@@ -253,29 +254,27 @@ class BaseScraper(ABC):
         import unicodedata
 
         # Remove accents
-        normalized = unicodedata.normalize('NFKD', team_name)
-        normalized = ''.join(c for c in normalized if not unicodedata.combining(c))
+        normalized = unicodedata.normalize("NFKD", team_name)
+        normalized = "".join(c for c in normalized if not unicodedata.combining(c))
 
         # Convert to lowercase
         normalized = normalized.lower()
 
         # Remove common prefixes/suffixes
-        prefixes = ['selecao', 'seleção', 'fc', 'cf', 'sc', 'cd', 'ud']
+        prefixes = ["selecao", "seleção", "fc", "cf", "sc", "cd", "ud"]
         for prefix in prefixes:
-            if normalized.startswith(prefix + ' '):
-                normalized = normalized[len(prefix) + 1:]
+            if normalized.startswith(prefix + " "):
+                normalized = normalized[len(prefix) + 1 :]
 
         # Remove country indicators
-        indicators = [' portugal', ' brasil', ' brazil', ' england', ' spain']
+        indicators = [" portugal", " brasil", " brazil", " england", " spain"]
         for indicator in indicators:
-            normalized = normalized.replace(indicator, '')
+            normalized = normalized.replace(indicator, "")
 
         return normalized.strip()
 
     def find_team_match(
-        self,
-        matches: List[OddsData],
-        team_name: str
+        self, matches: List[OddsData], team_name: str
     ) -> Optional[OddsData]:
         """Find a match containing a specific team"""
         normalized = self.normalize_team_name(team_name)
@@ -292,10 +291,14 @@ class BaseScraper(ABC):
     def get_status(self) -> Dict[str, Any]:
         """Get scraper status and statistics"""
         return {
-            'site': self.site_key,
-            'site_name': self.site_name,
-            'base_url': self.base_url,
-            'rate_limit_seconds': self.rate_limit_seconds,
-            'total_requests': self._request_count,
-            'last_request': datetime.fromtimestamp(self._last_request_time).isoformat() if self._last_request_time > 0 else None,
+            "site": self.site_key,
+            "site_name": self.site_name,
+            "base_url": self.base_url,
+            "rate_limit_seconds": self.rate_limit_seconds,
+            "total_requests": self._request_count,
+            "last_request": (
+                datetime.fromtimestamp(self._last_request_time).isoformat()
+                if self._last_request_time > 0
+                else None
+            ),
         }

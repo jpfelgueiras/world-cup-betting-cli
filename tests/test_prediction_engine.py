@@ -4,11 +4,12 @@ Unit tests for Prediction Engine
 Tests all functions in src/predictors/prediction_engine.py and team_stats.py
 """
 
-import pytest
 from datetime import datetime, timedelta
 
-from src.predictors.prediction_engine import PredictionEngine, MatchPrediction
-from src.predictors.team_stats import TeamData, TeamStats, MatchContext
+import pytest
+
+from src.predictors.prediction_engine import MatchPrediction, PredictionEngine
+from src.predictors.team_stats import MatchContext, TeamData, TeamStats
 
 
 class TestTeamData:
@@ -378,7 +379,9 @@ class TestPredictionEngine:
 
         prediction = engine.predict_match(home, away)
 
-        total = prediction.home_win_prob + prediction.draw_prob + prediction.away_win_prob
+        total = (
+            prediction.home_win_prob + prediction.draw_prob + prediction.away_win_prob
+        )
         assert total == pytest.approx(1.0, abs=0.01)
 
     def test_prediction_probabilities_valid_range(self, engine, sample_teams):
@@ -569,7 +572,7 @@ class TestPredictionEngineWeights:
         """Test that all required weights are present"""
         engine = PredictionEngine()
 
-        required_weights = ['elo', 'form', 'h2h', 'attack_defense', 'context']
+        required_weights = ["elo", "form", "h2h", "attack_defense", "context"]
 
         for weight_name in required_weights:
             assert weight_name in engine.weights

@@ -4,14 +4,14 @@ FastAPI Application Factory
 Creates and configures the FastAPI application for the REST API.
 """
 
-from fastapi import FastAPI, Request, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 import logging
 
-from .routes import router as api_router
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from .routes import router as api_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -110,7 +110,9 @@ You must be 18+ to gamble in Portugal.
 
     # Add exception handlers
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ):
         """Handle validation errors with detailed response"""
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -120,8 +122,8 @@ You must be 18+ to gamble in Portugal.
                 "code": "VALIDATION_ERROR",
                 "details": {
                     "errors": exc.errors(),
-                    "body": exc.body if hasattr(exc, 'body') else None
-                }
+                    "body": exc.body if hasattr(exc, "body") else None,
+                },
             },
         )
 
@@ -148,6 +150,7 @@ You must be 18+ to gamble in Portugal.
         # Initialize database/cache
         try:
             from predictors.data_loader import DataLoader
+
             DataLoader()  # Initialize cache
             logger.info("✅ Database cache initialized")
         except Exception as e:
