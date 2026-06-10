@@ -19,10 +19,13 @@ class DataLoader:
     """Load team data from various sources"""
 
     def __init__(self, cache_dir: Optional[str] = None):
-        if cache_dir is None:
-            cache_dir = Path(__file__).parent.parent.parent / "data" / "cache"
+        cache_path = (
+            Path(cache_dir)
+            if cache_dir is not None
+            else Path(__file__).parent.parent.parent / "data" / "cache"
+        )
 
-        self.cache_dir = Path(cache_dir)
+        self.cache_dir = cache_path
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize SQLite cache
@@ -133,6 +136,7 @@ class DataLoader:
             odds = OddsData(
                 match_id=row[1],
                 site=row[2],
+                site_name=row[2],
                 home_team=row[3],
                 away_team=row[4],
                 match_date=datetime.fromisoformat(row[5]) if row[5] else None,

@@ -10,11 +10,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.scrapers.base_scraper import (
-    BaseScraper,
-    OddsData,
-    ScraperError,
-)
+from src.scrapers.base_scraper import BaseScraper, OddsData, ScraperError
 from src.scrapers.betano_scraper import BetanoScraper
 from src.scrapers.betclic_scraper import BetclicScraper
 from src.scrapers.solverde_scraper import SolverdeScraper

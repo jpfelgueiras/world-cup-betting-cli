@@ -119,15 +119,16 @@ class BaseScraper(ABC):
         self.base_url = base_url
         self.rate_limit_seconds = rate_limit_seconds
 
-        self._session = None
+        self._session: Optional[requests.Session] = None
         self._last_request_time = 0
         self._request_count = 0
 
     @property
     def session(self) -> requests.Session:
         """Get or create requests session with retry logic"""
-        if self._session is None:
-            self._session = requests.Session()
+        session = self._session
+        if session is None:
+            session = requests.Session()
 
             # Configure retry strategy
             retry_strategy = Retry(
@@ -138,11 +139,11 @@ class BaseScraper(ABC):
             )
 
             adapter = HTTPAdapter(max_retries=retry_strategy)
-            self._session.mount("http://", adapter)
-            self._session.mount("https://", adapter)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
 
             # Set default headers
-            self._session.headers.update(
+            session.headers.update(
                 {
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                     "Accept-Language": "pt-PT,pt;q=0.9,en;q=0.8",
@@ -151,8 +152,9 @@ class BaseScraper(ABC):
                     "Upgrade-Insecure-Requests": "1",
                 }
             )
+            self._session = session
 
-        return self._session
+        return session
 
     def _rotate_user_agent(self):
         """Rotate user agent to avoid detection"""

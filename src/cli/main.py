@@ -19,22 +19,16 @@ from rich.table import Table
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import (  # noqa: E402
-    BETTING_SITES,
-    DEFAULT_MIN_CONFIDENCE,
-    DEFAULT_MIN_EV,
-    DISCLAIMER,
-)
-from predictors.prediction_engine import MatchPrediction, PredictionEngine  # noqa: E402
+from config import DEFAULT_MIN_CONFIDENCE  # noqa: E402
+from config import BETTING_SITES, DEFAULT_MIN_EV, DISCLAIMER
+from predictors.prediction_engine import (MatchPrediction,  # noqa: E402
+                                          PredictionEngine)
 from predictors.team_stats import TeamData  # noqa: E402
 from scrapers.betano_scraper import BetanoScraper  # noqa: E402
 from scrapers.betclic_scraper import BetclicScraper  # noqa: E402
 from scrapers.solverde_scraper import SolverdeScraper  # noqa: E402
-from utils.ev_calculator import (  # noqa: E402
-    BetRecommendation,
-    find_best_value_bets,
-    format_ev_display,
-)
+from utils.ev_calculator import BetRecommendation  # noqa: E402
+from utils.ev_calculator import find_best_value_bets, format_ev_display
 
 console = Console()
 
@@ -189,12 +183,10 @@ def scan(date: Optional[str], days: int, min_ev: float, site: str):
     # Determine date range
     if date:
         try:
-            date = datetime.strptime(date, "%Y-%m-%d")
+            datetime.strptime(date, "%Y-%m-%d")
         except ValueError:
             console.print("[red]❌ Invalid date format. Use YYYY-MM-DD[/red]")
             sys.exit(1)
-    else:
-        datetime.now()  # noqa: F841
 
     # Get scrapers
     scrapers = get_scrapers(site)

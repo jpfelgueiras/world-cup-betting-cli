@@ -10,28 +10,15 @@ Provides REST endpoints for:
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from .models import (
-    AnalysisConfig,
-    BookmakerStatus,
-    ConfidenceLevels,
-    ErrorResponse,
-    HealthResponse,
-    LibraryConfig,
-    MarketAverage,
-    MarketType,
-    MatchAnalysisResponse,
-    MatchPredictionRequest,
-    RiskTolerance,
-    ScanMatchResult,
-    ScanRequest,
-    ScanResponse,
-    TeamProbabilities,
-    ValueBet,
-)
+from .models import (AnalysisConfig, BookmakerStatus, ConfidenceLevels,
+                     ErrorResponse, HealthResponse, LibraryConfig,
+                     MarketAverage, MarketType, MatchAnalysisResponse,
+                     MatchPredictionRequest, RiskTolerance, ScanMatchResult,
+                     ScanRequest, ScanResponse, TeamProbabilities, ValueBet)
 
 router = APIRouter(prefix="/api/v1", tags=["betting-insights"])
 
@@ -50,7 +37,7 @@ def get_scrapers(site: str = "all"):
     from ..scrapers.betclic_scraper import BetclicScraper
     from ..scrapers.solverde_scraper import SolverdeScraper
 
-    scrapers = []
+    scrapers: List[Any] = []
     if site == "all" or site == "betano":
         scrapers.append(BetanoScraper())
     if site == "all" or site == "betclic":
@@ -255,7 +242,7 @@ async def scan_matches(
     and returns those with value bets matching your criteria.
     """
     if request is None:
-        request = ScanRequest()
+        request = ScanRequest.model_construct()
 
     # Determine date range
     start_date = request.start_date or datetime.now()
@@ -270,7 +257,7 @@ async def scan_matches(
     scrapers = get_scrapers(request.site.value)
 
     # Collect all upcoming matches
-    all_matches = {}
+    all_matches: Dict[str, Dict[str, Any]] = {}
 
     for scraper in scrapers:
         try:
@@ -392,7 +379,8 @@ async def get_config():
     - Enabled bookmakers
     - Cache settings
     """
-    from src.config import BETTING_SITES, DEFAULT_MIN_CONFIDENCE, DEFAULT_MIN_EV
+    from src.config import (BETTING_SITES, DEFAULT_MIN_CONFIDENCE,
+                            DEFAULT_MIN_EV)
 
     enabled_sites = [
         key for key, config in BETTING_SITES.items() if config.get("enabled", False)

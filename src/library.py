@@ -26,15 +26,13 @@ from typing import Any, Dict, List, Optional
 from .config import BETTING_SITES, DEFAULT_MIN_CONFIDENCE, DEFAULT_MIN_EV
 from .predictors.prediction_engine import PredictionEngine
 from .predictors.team_stats import TeamData
+from .scrapers.base_scraper import OddsData
 from .scrapers.betano_scraper import BetanoScraper
 from .scrapers.betclic_scraper import BetclicScraper
 from .scrapers.solverde_scraper import SolverdeScraper
-from .utils.ev_calculator import (
-    BetRecommendation,
-    analyze_bet,
-    calculate_market_average,
-    find_best_value_bets,
-)
+from .utils.ev_calculator import (BetRecommendation, analyze_bet,
+                                  calculate_market_average,
+                                  find_best_value_bets)
 
 
 @dataclass
@@ -217,7 +215,7 @@ class BettingInsights:
                 if config.get("enabled", False)
             ]
 
-        self.scrapers = []
+        self.scrapers: List[Any] = []
         if "betano" in enabled_sites:
             self.scrapers.append(BetanoScraper())
         if "betclic" in enabled_sites:
@@ -341,7 +339,7 @@ class BettingInsights:
         )
 
         # Collect all upcoming matches
-        all_matches = {}
+        all_matches: Dict[str, Dict[str, Any]] = {}
 
         for scraper in self.scrapers:
             try:
@@ -360,7 +358,7 @@ class BettingInsights:
 
         for match_key, data in all_matches.items():
             match = data["match"]
-            odds_list = data  # noqa: F841['odds']
+            odds_list = data["odds"]
 
             # Analyze match
             try:
@@ -456,7 +454,7 @@ class BettingInsights:
 
     def _get_match_odds(
         self, home_team: str, away_team: str, match_date: Optional[datetime]
-    ):
+    ) -> List[OddsData]:
         """Get odds from all configured scrapers"""
         all_odds = []
 
