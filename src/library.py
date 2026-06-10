@@ -359,9 +359,8 @@ class BettingInsights:
         matches_with_bets = []
         total_value_bets = 0
 
-        for match_key, data in all_matches.items():
+        for data in all_matches.values():
             match = data["match"]
-            odds_list = data["odds"]
 
             # Analyze match
             try:

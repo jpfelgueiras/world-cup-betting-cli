@@ -198,9 +198,30 @@ class DataLoader:
         cursor.execute(
             """
             SELECT COUNT(*),
-                   SUM(CASE WHEN actual_result = 'home' AND home_prob > draw_prob AND home_prob > away_prob THEN 1 ELSE 0 END),
-                   SUM(CASE WHEN actual_result = 'draw' AND draw_prob > home_prob AND draw_prob > away_prob THEN 1 ELSE 0 END),
-                   SUM(CASE WHEN actual_result = 'away' AND away_prob > home_prob AND away_prob > draw_prob THEN 1 ELSE 0 END)
+                   SUM(
+                       CASE
+                           WHEN actual_result = 'home'
+                           AND home_prob > draw_prob
+                           AND home_prob > away_prob THEN 1
+                           ELSE 0
+                       END
+                   ),
+                   SUM(
+                       CASE
+                           WHEN actual_result = 'draw'
+                           AND draw_prob > home_prob
+                           AND draw_prob > away_prob THEN 1
+                           ELSE 0
+                       END
+                   ),
+                   SUM(
+                       CASE
+                           WHEN actual_result = 'away'
+                           AND away_prob > home_prob
+                           AND away_prob > draw_prob THEN 1
+                           ELSE 0
+                       END
+                   )
             FROM predictions_log
             WHERE created_at > ? AND actual_result IS NOT NULL
         """,
