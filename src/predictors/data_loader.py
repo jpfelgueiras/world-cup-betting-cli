@@ -109,7 +109,7 @@ class DataLoader:
         max_age_hours: int = 1
     ) -> List[Any]:
         """Get recently cached odds for a match"""
-        from scrapers.base_scraper import OddsData
+        from .scrapers.base_scraper import OddsData
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
