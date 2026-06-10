@@ -40,15 +40,15 @@ router = APIRouter(prefix="/api/v1", tags=["betting-insights"])
 # Dependency injection for services (would be initialized in create_app)
 def get_prediction_engine():
     """Get prediction engine instance"""
-    from predictors.prediction_engine import PredictionEngine
+    from ..predictors.prediction_engine import PredictionEngine
     return PredictionEngine()
 
 
 def get_scrapers(site: str = "all"):
     """Get list of scrapers based on site parameter"""
-    from scrapers.betano_scraper import BetanoScraper
-    from scrapers.betclic_scraper import BetclicScraper
-    from scrapers.solverde_scraper import SolverdeScraper
+    from ..scrapers.betano_scraper import BetanoScraper
+    from ..scrapers.betclic_scraper import BetclicScraper
+    from ..scrapers.solverde_scraper import SolverdeScraper
     
     scrapers = []
     if site == "all" or site == "betano":
@@ -420,7 +420,7 @@ async def update_config(new_config: LibraryConfig):
 def _create_mock_team_data(team_name: str):
     """Create mock team data (replace with real data fetching in production)"""
     import random
-    from predictors.team_stats import TeamData
+    from ..predictors.team_stats import TeamData
     
     return TeamData(
         name=team_name,
@@ -442,7 +442,7 @@ def _create_mock_team_data(team_name: str):
 
 def _calculate_market_averages(odds_list: list) -> dict:
     """Calculate average odds across bookmakers"""
-    from utils.ev_calculator import calculate_market_average
+    from ..utils.ev_calculator import calculate_market_average
     
     home_odds = [o.home_win for o in odds_list if o.home_win]
     draw_odds = [o.draw for o in odds_list if o.draw]
@@ -462,7 +462,7 @@ def _calculate_market_averages(odds_list: list) -> dict:
 
 def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_confidence):
     """Generate bet recommendations"""
-    from utils.ev_calculator import analyze_bet
+    from ..utils.ev_calculator import analyze_bet
     
     recommendations = []
     
@@ -545,7 +545,7 @@ def _generate_recommendations(prediction, odds_list, market_avg, min_ev, min_con
 
 def _filter_by_risk_tolerance(recommendations, risk_tolerance: RiskTolerance):
     """Filter recommendations based on risk tolerance"""
-    from utils.ev_calculator import find_best_value_bets
+    from ..utils.ev_calculator import find_best_value_bets
     
     # Adjust thresholds based on risk tolerance
     if risk_tolerance == RiskTolerance.CONSERVATIVE:
