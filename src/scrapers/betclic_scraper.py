@@ -57,23 +57,17 @@ class BetclicScraper(BaseScraper):
         away_team: str,
         match_date: Optional[datetime] = None
     ) -> OddsData:
-        """Create mock odds with Betclic-style variations"""
-        import random
-
+        """Create mock odds data for demonstration"""
+        
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
-
-        # Betclic often has slightly different odds than Betano
-        base_home = random.uniform(1.75, 3.6)
-        base_draw = random.uniform(3.1, 4.2)
-        base_away = random.uniform(1.75, 3.6)
-
-        total_implied = (1/base_home + 1/base_draw + 1/base_away)
-        margin = 1.06  # Slightly higher margin
-        home_win = round((1/base_home) / total_implied * margin, 2)
-        draw = round((1/base_draw) / total_implied * margin, 2)
-        away_win = round((1/base_away) / total_implied * margin, 2)
-
+        
+        # Simple deterministic odds based on team name lengths
+        # Always produces valid odds > 1.0
+        base_home = 1.85 + (len(home_team) % 10) * 0.12
+        base_away = 2.05 + (len(away_team) % 10) * 0.12
+        base_draw = 3.25
+        
         return OddsData(
             match_id=f"betclic_{home_team}_{away_team}_{match_date.strftime('%Y%m%d')}",
             home_team=home_team,
@@ -81,19 +75,18 @@ class BetclicScraper(BaseScraper):
             match_date=match_date,
             site='betclic',
             site_name=self.site_name,
-            home_win=home_win,
-            draw=draw,
-            away_win=away_win,
-            over_2_5=round(random.uniform(1.65, 2.15), 2),
-            under_2_5=round(random.uniform(1.65, 2.15), 2),
-            btts_yes=round(random.uniform(1.55, 2.05), 2),
-            btts_no=round(random.uniform(1.65, 2.25), 2),
+            home_win=round(base_home, 2),
+            draw=round(base_draw, 2),
+            away_win=round(base_away, 2),
+            over_2_5=1.90,
+            under_2_5=2.00,
+            btts_yes=1.80,
+            btts_no=2.10,
             url=f"{self.base_url}/futebol/{home_team}-{away_team}",
         )
 
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """Generate mock upcoming matches"""
-        import random
 
         teams = [
             ('Portugal', 'Brazil'),
