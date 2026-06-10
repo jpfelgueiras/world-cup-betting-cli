@@ -222,10 +222,6 @@ class BettingInsights:
             self.scrapers.append(BetclicScraper())
         if 'solverde' in enabled_sites:
             self.scrapers.append(SolverdeScraper())
-        
-        # Debug: ensure scrapers were created
-        if not self.scrapers and enabled_sites:
-            raise RuntimeError(f"Failed to create scrapers. enabled_sites={enabled_sites}")
 
         # Initialize cache
         if cache_enabled:
@@ -452,23 +448,20 @@ class BettingInsights:
     def _get_match_odds(self, home_team: str, away_team: str, match_date: Optional[datetime]):
         """Get odds from all configured scrapers"""
         all_odds = []
-        
-        print(f"DEBUG: _get_match_odds called with {home_team} vs {away_team}, scrapers={len(self.scrapers)}")
 
         for scraper in self.scrapers:
             try:
-                print(f"DEBUG: Calling {scraper.site_key}.get_match_odds")
                 # Fetch from scraper
                 odds = scraper.get_match_odds(home_team, away_team, match_date)
-                print(f"DEBUG: {scraper.site_key} returned {odds}")
                 if odds:
                     all_odds.append(odds)
 
             except Exception as e:
-                print(f"DEBUG: {scraper.site_key} raised {type(e).__name__}: {e}")
-                raise  # Re-raise to see the actual error
+                # Log error but continue with other scrapers
+                import logging
+                logging.warning(f"{scraper.site_key} failed: {type(e).__name__}: {e}")
+                continue
 
-        print(f"DEBUG: _get_match_odds returning {len(all_odds)} odds")
         return all_odds
 
     def _calculate_market_averages(self, odds_list: list) -> dict:
