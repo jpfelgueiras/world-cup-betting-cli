@@ -136,7 +136,6 @@ class BetanoScraper(BaseScraper):
 
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """Generate mock upcoming matches for demonstration"""
-        import random
 
         teams = [
             ('Portugal', 'Brazil'),
