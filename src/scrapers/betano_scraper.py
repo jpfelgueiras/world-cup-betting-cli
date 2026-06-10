@@ -169,3 +169,4 @@ class BetanoScraper(BaseScraper):
 # 5. Add logging and monitoring
 # 6. Consider using official API if available
 # 7. Ensure compliance with terms of service and Portuguese gambling regulations
+# Force CI rebuild
