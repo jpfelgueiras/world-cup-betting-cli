@@ -169,7 +169,14 @@ def test_cli_predict_json_flow_integration(monkeypatch):
     runner = CliRunner()
 
     monkeypatch.setattr("src.cli.main.create_mock_team_data", lambda team: {"name": team})
-    monkeypatch.setattr("src.cli.main.PredictionEngine", lambda: type("Engine", (), {"predict_match": lambda *_a, **_k: DummyPrediction()})())
+    monkeypatch.setattr(
+        "src.cli.main.PredictionEngine",
+        lambda: type(
+            "Engine",
+            (),
+            {"predict_match": lambda *_a, **_k: DummyPrediction()},
+        )(),
+    )
     monkeypatch.setattr(
         "src.cli.main.get_scrapers",
         lambda _site: [StubScraper("betano", "Betano.pt", datetime(2026, 6, 15, 20, 0))],
