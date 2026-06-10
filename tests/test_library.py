@@ -8,8 +8,12 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from src.library import (BettingInsights, MatchAnalysisResult, ScanResult,
-                         create_insights)
+from src.library import (
+    BettingInsights,
+    MatchAnalysisResult,
+    ScanResult,
+    create_insights,
+)
 
 
 class TestMatchAnalysisResult:
