@@ -470,11 +470,8 @@ class BettingInsights:
                     # Cache the odds
                     if self.cache_enabled and self.data_loader:
                         self.data_loader.cache_odds(odds)
-                else:
-                    print(f"DEBUG: {scraper.site_key} returned None")
 
-            except Exception as e:
-                print(f"DEBUG: {scraper.site_key} raised {type(e).__name__}: {e}")
+            except Exception:
                 continue  # Skip failed scrapers
 
         return all_odds
