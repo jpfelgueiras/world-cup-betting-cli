@@ -456,7 +456,7 @@ class TestBettingInsights:
 
     def test_update_config_enabled_sites(self, insights):
         """Test updating enabled sites configuration"""
-        initial_count = len(insights.scrapers)
+        initial_count =  # noqa: F841 len(insights.scrapers)
 
         insights.update_config(enabled_sites=["betano"])
 

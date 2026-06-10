@@ -541,7 +541,7 @@ class TestAppCreation:
 
     def test_create_app_with_custom_title(self):
         """Test creating app with custom title"""
-        custom_app =  # noqa: F841 create_app(title="Custom API")
+        custom_app = create_app(title="Custom API")  # noqa: F841
         assert custom_app.title == "Custom API"
 
     def test_create_app_with_custom_version(self):

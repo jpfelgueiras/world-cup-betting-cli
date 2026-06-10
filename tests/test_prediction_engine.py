@@ -5,7 +5,6 @@ Tests all functions in src/predictors/prediction_engine.py and team_stats.py
 """
 
 import pytest
-import numpy as np
 from datetime import datetime, timedelta
 
 from src.predictors.prediction_engine import PredictionEngine, MatchPrediction
