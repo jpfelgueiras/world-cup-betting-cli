@@ -222,6 +222,10 @@ class BettingInsights:
             self.scrapers.append(BetclicScraper())
         if 'solverde' in enabled_sites:
             self.scrapers.append(SolverdeScraper())
+        
+        # Debug: ensure scrapers were created
+        if not self.scrapers and enabled_sites:
+            raise RuntimeError(f"Failed to create scrapers. enabled_sites={enabled_sites}")
 
         # Initialize cache
         if cache_enabled:
