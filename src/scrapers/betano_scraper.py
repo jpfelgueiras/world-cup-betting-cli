@@ -1,10 +1,31 @@
 """
-Betano.pt scraper.
+Betano.pt Scraper - MOCK IMPLEMENTATION
 
-The production implementation should still be validated against the live site,
-but this module now exposes parser helpers that can be exercised against
-captured fixtures in CI. That keeps integration tests stable while still
-covering the real scraper logic and normalization behavior.
+⚠️  IMPORTANT: This is a MOCK/SKELETON implementation for development and testing.
+
+This module provides:
+1. Parser helpers that CAN work with real HTML if selectors are correct
+2. Mock data generation for when real scraping fails or is unavailable
+
+PRODUCTION REQUIREMENTS (NOT YET IMPLEMENTED):
+- Real HTTP requests to Betano.pt with proper headers and session management
+- JavaScript rendering support (Betano uses dynamic content loading)
+- Anti-bot bypass mechanisms (CAPTCHA handling, rate limiting, proxy rotation)
+- Real-time odds extraction from live site
+- Error handling for site layout changes
+
+CURRENT STATUS:
+- Parser logic is implemented but untested against live site
+- Falls back to mock data generation for all operations
+- Suitable for CLI/API development and testing only
+- NOT suitable for production use with real betting data
+
+To implement real scraping:
+1. Update _make_request() in base_scraper.py with proper session/headers
+2. Verify CSS selectors in parse_upcoming_matches_html() against live site
+3. Implement JavaScript rendering (Playwright/Selenium) if needed
+4. Add comprehensive error handling and retry logic
+5. Implement rate limiting and respect robots.txt
 """
 
 from datetime import datetime, timedelta
@@ -18,7 +39,11 @@ from .base_scraper import BaseScraper, OddsData, ScraperError
 
 
 class BetanoScraper(BaseScraper):
-    """Scraper for Betano.pt."""
+    """
+    Scraper for Betano.pt - MOCK IMPLEMENTATION.
+    
+    See module docstring for production requirements and limitations.
+    """
 
     def __init__(self):
         config = BETTING_SITES.get("betano", {})
@@ -36,11 +61,13 @@ class BetanoScraper(BaseScraper):
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
-
-        This uses the same parser-backed upcoming-match flow as the real scraper and
-        then selects the requested fixture. If the site layout changes or the request
-        fails, we fall back to deterministic demo odds so CLI/library flows remain
-        usable.
+        
+        ⚠️  MOCK: Currently returns mock data. Real implementation requires:
+        - HTTP request to Betano.pt
+        - HTML parsing with verified selectors
+        - JavaScript rendering support
+        
+        This uses the parser-backed approach and falls back to mock data.
         """
         try:
             matches = self.get_upcoming_matches(days_ahead=7)
@@ -50,26 +77,50 @@ class BetanoScraper(BaseScraper):
         except ScraperError:
             pass
 
+        # FALLBACK: Mock data (production should raise error or retry)
         return self._create_mock_odds(home_team, away_team, match_date)
 
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
-        """Get odds for all upcoming matches within the specified window."""
+        """
+        Get odds for all upcoming matches within the specified window.
+        
+        ⚠️  MOCK: Attempts real scrape but always falls back to mock data.
+        Production implementation should:
+        - Make authenticated request to Betano sports page
+        - Parse all match cards from response
+        - Handle pagination if needed
+        - Cache results appropriately
+        """
         try:
+            # Attempt real scrape (will fail without proper implementation)
             url = f"{self.sports_url}football"
             response = self._make_request(url)
             matches = self.parse_upcoming_matches_html(response.text)
             if matches:
                 return matches
-            return self._get_mock_upcoming_matches(days_ahead)
+            # Fall through to mock
         except ScraperError as e:
-            print(f"Scraping failed, using mock data: {e}")
-            return self._get_mock_upcoming_matches(days_ahead)
+            print(f"⚠️  Betano scraping not implemented, using mock data: {e}")
         except Exception as e:
-            raise ScraperError(f"Error getting upcoming matches from Betano: {str(e)}")
+            print(f"⚠️  Betano scraping failed, using mock: {str(e)}")
+        
+        return self._get_mock_upcoming_matches(days_ahead)
 
     def parse_upcoming_matches_html(self, html: str) -> List[OddsData]:
-        """Parse Betano upcoming-match HTML into normalized odds rows."""
+        """
+        Parse Betano upcoming-match HTML into normalized odds rows.
+        
+        Args:
+            html: Raw HTML response from Betano.pt
+            
+        Returns:
+            List of parsed OddsData objects
+            
+        Note: CSS selectors below are PLACEHOLDERS and must be verified
+        against the live Betano.pt site structure.
+        """
         soup = BeautifulSoup(html, "lxml")
+        # ⚠️  PLACEHOLDER SELECTORS - Must be updated for live site
         match_elements = soup.select(".match-item, .event-row, [data-match-id]")
 
         matches: List[OddsData] = []
@@ -80,7 +131,11 @@ class BetanoScraper(BaseScraper):
         return matches
 
     def _parse_match_element(self, elem) -> Optional[OddsData]:
-        """Parse one Betano match card from captured or live HTML."""
+        """
+        Parse one Betano match card from HTML.
+        
+        ⚠️  PLACEHOLDER: Selectors must be verified against live site.
+        """
 
         def text(selector: str) -> Optional[str]:
             node = elem.select_one(selector)
@@ -121,6 +176,7 @@ class BetanoScraper(BaseScraper):
 
     @staticmethod
     def _parse_float(value: Optional[str]) -> Optional[float]:
+        """Parse float from string, handling European decimal format."""
         if value in (None, ""):
             return None
         return float(value.replace(",", "."))
@@ -132,6 +188,7 @@ class BetanoScraper(BaseScraper):
         away_team: str,
         match_date: Optional[datetime],
     ) -> Optional[OddsData]:
+        """Find matching fixture in list of odds."""
         home_norm = self.normalize_team_name(home_team)
         away_norm = self.normalize_team_name(away_team)
 
@@ -147,7 +204,11 @@ class BetanoScraper(BaseScraper):
     def _create_mock_odds(
         self, home_team: str, away_team: str, match_date: Optional[datetime] = None
     ) -> OddsData:
-        """Create mock odds data for demonstration."""
+        """
+        Create mock odds data for demonstration/testing.
+        
+        ⚠️  MOCK DATA ONLY - Not real odds from Betano.pt
+        """
 
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
@@ -174,7 +235,11 @@ class BetanoScraper(BaseScraper):
         )
 
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
-        """Generate mock upcoming matches for demonstration."""
+        """
+        Generate mock upcoming matches for demonstration/testing.
+        
+        ⚠️  MOCK DATA ONLY - Not real fixtures from Betano.pt
+        """
 
         teams = [
             ("Portugal", "Brazil"),
