@@ -25,3 +25,11 @@ httpx>=0.26.0  # For async API testing
 
 # Optional: Production deployment
 gunicorn>=21.0.0  # For production ASGI server
+
+# Monitoring & Observability
+prometheus-client>=0.19.0  # Prometheus metrics
+sentry-sdk[fastapi]>=1.39.0  # Error tracking
+
+# Security (optional, for production)
+python-jose[cryptography]>=3.3.0  # JWT tokens (if needed)
+passlib[bcrypt]>=1.7.4  # Password hashing (if needed)

@@ -1,0 +1,158 @@
+# World Cup Betting Insights CLI - Docker Compose Configuration
+# For local development and testing
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # API Service (Production)
+  # =============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: worldcup-api
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - LOG_STRUCTURED=false
+      - ENABLE_CORS=true
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+      - RATE_LIMIT_PER_IP=100
+      - RATE_LIMIT_WINDOW_SECONDS=60
+      - MIN_EV_THRESHOLD=5.0
+      - MIN_CONFIDENCE_THRESHOLD=60.0
+    env_file:
+      - .env
+    volumes:
+      - ./data/cache:/app/data/cache
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - worldcup-network
+
+  # =============================================================================
+  # Development Service (with hot reload)
+  # =============================================================================
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: worldcup-api-dev
+    ports:
+      - "8001:8000"
+    environment:
+      - LOG_LEVEL=DEBUG
+      - LOG_STRUCTURED=false
+      - ENABLE_CORS=true
+      - CORS_ORIGINS=*
+      - RATE_LIMIT_PER_IP=1000
+      - RATE_LIMIT_WINDOW_SECONDS=60
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: >
+      python -m uvicorn src.api.app:create_app
+      --reload
+      --host 0.0.0.0
+      --port 8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - worldcup-network
+
+  # =============================================================================
+  # Test Runner
+  # =============================================================================
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: worldcup-test
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=WARNING
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./coverage:/app/coverage
+    command: >
+      pytest tests/
+      --verbose
+      --tb=short
+      --cov=src
+      --cov-report=term-missing
+      --cov-report=xml:/app/coverage/coverage.xml
+      --cov-report=html:/app/coverage/html
+    depends_on:
+      - api-dev
+    networks:
+      - worldcup-network
+
+  # =============================================================================
+  # Prometheus Metrics (optional monitoring)
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: worldcup-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    profiles:
+      - monitoring
+    networks:
+      - worldcup-network
+
+  # =============================================================================
+  # Grafana Dashboards (optional monitoring)
+  # =============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: worldcup-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    profiles:
+      - monitoring
+    depends_on:
+      - prometheus
+    networks:
+      - worldcup-network
+
+networks:
+  worldcup-network:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
