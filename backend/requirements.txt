@@ -2,7 +2,7 @@
 
 # Core dependencies
 click>=8.1.0
-requests>=2.31.0
+requests>=2.34.2
 pandas>=2.3.3
 numpy>=1.24.0
 scikit-learn>=1.3.0
