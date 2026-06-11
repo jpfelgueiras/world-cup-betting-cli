@@ -96,7 +96,7 @@ class BetanoScraper(BaseScraper):
 
         try:
             match_date = datetime.fromisoformat(match_date_raw)
-        except ValueError:
+        except (ValueError, TypeError):
             return None
 
         link = elem.select_one("a.match-link")
