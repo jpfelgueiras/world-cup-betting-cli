@@ -64,7 +64,7 @@ class SolverdeScraper(BaseScraper):
 
             try:
                 match_date = datetime.fromisoformat(item["date"])
-            except (KeyError, ValueError):
+            except (KeyError, ValueError, TypeError):
                 continue
 
             matches.append(
