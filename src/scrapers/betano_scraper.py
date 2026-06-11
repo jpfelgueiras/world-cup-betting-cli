@@ -87,16 +87,52 @@ class BetanoScraper(BaseScraper):
             raise ScraperError(f"Error getting upcoming matches from Betano: {str(e)}")
 
     def _parse_match_element(self, elem) -> Optional[OddsData]:
-        """
-        Parse a match element to extract odds.
+        """Parse one Betano match card from captured or live HTML."""
+        def text(selector: str) -> Optional[str]:
+            node = elem.select_one(selector)
+            return node.get_text(strip=True) if node else None
 
-        Real implementation would extract:
-        - Team names
-        - Match date/time
-        - All available odds markets
-        """
-        # Placeholder - actual implementation depends on site structure
-        return None
+        match_id = elem.get("data-match-id") or text("[data-match-id]")
+        home_team = text(".home-team")
+        away_team = text(".away-team")
+        match_date_raw = text(".match-date")
+
+        if not all([match_id, home_team, away_team, match_date_raw]):
+            return None
+
+        try:
+            match_date = datetime.fromisoformat(match_date_raw)
+        except (ValueError, TypeError):
+            return None
+
+        link = elem.select_one("a.match-link")
+        href = link.get("href") if link else None
+
+        return OddsData(
+            match_id=match_id,
+            home_team=home_team,
+            away_team=away_team,
+            match_date=match_date,
+            site="betano",
+            site_name=self.site_name,
+            home_win=self._parse_float(text(".odds-home")),
+            draw=self._parse_float(text(".odds-draw")),
+            away_win=self._parse_float(text(".odds-away")),
+            over_2_5=self._parse_float(text(".odds-over-2-5")),
+            under_2_5=self._parse_float(text(".odds-under-2-5")),
+            btts_yes=self._parse_float(text(".odds-btts-yes")),
+            btts_no=self._parse_float(text(".odds-btts-no")),
+            url=f"{self.base_url}{href}" if href else None,
+        )
+
+    def _parse_float(self, value: Optional[str]) -> Optional[float]:
+        """Parse a string to float, returning None if invalid."""
+        if value is None or value == "":
+            return None
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return None
 
     def _create_mock_odds(
         self, home_team: str, away_team: str, match_date: Optional[datetime] = None
