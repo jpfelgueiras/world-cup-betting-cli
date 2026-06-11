@@ -538,3 +538,158 @@ class TestScraperError:
             failing_function()
 
         assert "Scraping failed" in str(exc_info.value)
+
+
+class TestBetanoScraperExtended:
+    """Extended tests for BetanoScraper to improve coverage"""
+
+    @pytest.fixture
+    def scraper(self):
+        """Create BetanoScraper instance"""
+        return BetanoScraper()
+
+    @patch('src.scrapers.betano_scraper.BetanoScraper._make_request')
+    def test_get_upcoming_matches_scraping_flow(self, mock_request, scraper):
+        """Test get_upcoming_matches with mocked HTML response"""
+        from bs4 import BeautifulSoup
+        
+        # Mock HTML response with match elements
+        mock_response = Mock()
+        mock_response.text = '''
+        <html>
+            <div class="match-item" data-match-id="123">
+                <span class="home-team">Portugal</span>
+                <span class="away-team">Spain</span>
+            </div>
+        </html>
+        '''
+        mock_request.return_value = mock_response
+        
+        # The real implementation would parse this, but _parse_match_element returns None
+        # So it should fall back to mock data
+        matches = scraper.get_upcoming_matches(days_ahead=7)
+        
+        assert isinstance(matches, list)
+        # Should have mock data since parsing returns None
+        assert len(matches) > 0
+
+    @patch('src.scrapers.betano_scraper.BetanoScraper._make_request')
+    def test_get_upcoming_matches_scraping_error_fallback(self, mock_request, scraper):
+        """Test get_upcoming_matches falls back to mock data on scraping error"""
+        from src.scrapers.base_scraper import ScraperError
+        
+        mock_request.side_effect = ScraperError("Site unavailable")
+        
+        matches = scraper.get_upcoming_matches(days_ahead=7)
+        
+        # Should return mock data even when scraping fails
+        assert isinstance(matches, list)
+        assert len(matches) > 0
+        assert all(isinstance(m, OddsData) for m in matches)
+
+    @patch('src.scrapers.betano_scraper.BetanoScraper._make_request')
+    def test_get_upcoming_matches_general_exception_fallback(self, mock_request, scraper):
+        """Test get_upcoming_matches falls back to mock data on general exception"""
+        mock_request.side_effect = Exception("Unexpected error")
+        
+        matches = scraper.get_upcoming_matches(days_ahead=7)
+        
+        # Should return mock data even when unexpected error occurs
+        assert isinstance(matches, list)
+        assert len(matches) > 0
+
+    def test_parse_match_element_returns_none(self, scraper):
+        """Test _parse_match_element returns None (placeholder implementation)"""
+        # Create a mock element
+        mock_elem = Mock()
+        
+        result = scraper._parse_match_element(mock_elem)
+        
+        # Placeholder implementation always returns None
+        assert result is None
+
+    def test_create_mock_odds_with_custom_date(self, scraper):
+        """Test _create_mock_odds with custom match date"""
+        custom_date = datetime.now() + timedelta(days=5)
+        
+        odds = scraper._create_mock_odds("Portugal", "Brazil", custom_date)
+        
+        assert odds.home_team == "Portugal"
+        assert odds.away_team == "Brazil"
+        assert odds.match_date == custom_date
+        assert odds.site == "betano"
+        assert odds.has_1x2()
+
+    def test_create_mock_odds_default_date(self, scraper):
+        """Test _create_mock_odds uses default date when none provided"""
+        odds = scraper._create_mock_odds("Portugal", "Brazil", None)
+        
+        # Should be approximately 3 days from now
+        expected_date = datetime.now() + timedelta(days=3)
+        assert abs((odds.match_date - expected_date).total_seconds()) < 60  # Within 1 minute
+
+    def test_create_mock_odds_deterministic(self, scraper):
+        """Test _create_mock_odds produces deterministic odds based on team names"""
+        odds1 = scraper._create_mock_odds("Portugal", "Brazil")
+        odds2 = scraper._create_mock_odds("Portugal", "Brazil")
+        
+        # Same teams should produce same odds (excluding date which varies slightly)
+        assert odds1.home_win == odds2.home_win
+        assert odds1.draw == odds2.draw
+        assert odds1.away_win == odds2.away_win
+
+    def test_create_mock_odds_different_teams_different_odds(self, scraper):
+        """Test _create_mock_odds produces different odds for different team names"""
+        odds1 = scraper._create_mock_odds("A", "B")
+        odds2 = scraper._create_mock_odds("VeryLongTeamName", "AnotherLongName")
+        
+        # Different length team names should produce different odds
+        assert odds1.home_win != odds2.home_win or odds1.away_win != odds2.away_win
+
+    def test_get_mock_upcoming_matches_count(self, scraper):
+        """Test _get_mock_upcoming_matches returns expected number of matches"""
+        matches = scraper._get_mock_upcoming_matches(days_ahead=7)
+        
+        # Should return 8 predefined mock matches
+        assert len(matches) == 8
+        assert all(isinstance(m, OddsData) for m in matches)
+
+    def test_get_mock_upcoming_matches_spread_dates(self, scraper):
+        """Test _get_mock_upcoming_matches spreads matches across days"""
+        matches = scraper._get_mock_upcoming_matches(days_ahead=7)
+        
+        # Matches should have sequential dates
+        today = datetime.now().date()
+        for i, match in enumerate(matches):
+            expected_day = today + timedelta(days=i + 1)
+            assert match.match_date.date() == expected_day
+
+    def test_get_mock_upcoming_matches_teams(self, scraper):
+        """Test _get_mock_upcoming_matches includes expected teams"""
+        matches = scraper._get_mock_upcoming_matches(days_ahead=7)
+        
+        # Check for some expected team combinations
+        all_teams = set()
+        for match in matches:
+            all_teams.add(match.home_team)
+            all_teams.add(match.away_team)
+        
+        expected_teams = {"Portugal", "Brazil", "Spain", "Germany", "France", 
+                         "Argentina", "England", "Italy", "Netherlands", "Belgium",
+                         "Croatia", "Uruguay", "Morocco", "Japan", "USA", "Mexico"}
+        
+        assert expected_teams.issubset(all_teams)
+
+    @patch('src.scrapers.betano_scraper.BetanoScraper._make_request')
+    def test_get_upcoming_matches_with_lxml_parsing_attempt(self, mock_request, scraper):
+        """Test that get_upcoming_matches attempts to parse with lxml/BeautifulSoup"""
+        mock_response = Mock()
+        mock_response.text = '<html><body></body></html>'
+        mock_request.return_value = mock_response
+        
+        matches = scraper.get_upcoming_matches(days_ahead=7)
+        
+        # Verify _make_request was called
+        mock_request.assert_called_once()
+        # Should fall back to mock data since no matches parsed
+        assert len(matches) > 0
