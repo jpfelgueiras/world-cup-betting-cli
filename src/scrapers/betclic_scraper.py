@@ -62,7 +62,7 @@ class BetclicScraper(BaseScraper):
 
             try:
                 match_date = datetime.fromisoformat(event["starts_at"])
-            except (KeyError, ValueError):
+            except (KeyError, ValueError, TypeError):
                 continue
 
             if not contestants.get("home") or not contestants.get("away"):
