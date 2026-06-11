@@ -1,0 +1,34 @@
+{
+  "matches": [
+    {
+      "match_id": "SOLVERDE-3001",
+      "date": "2026-06-15T20:00:00",
+      "teams": ["Portugal", "Brazil"],
+      "odds": {
+        "home_win": 2.2,
+        "draw": 3.28,
+        "away_win": 3.08,
+        "over_2_5": 1.89,
+        "under_2_5": 1.91,
+        "btts_yes": 1.75,
+        "btts_no": 2.01
+      },
+      "path": "/apostas/futebol/portugal-brasil/SOLVERDE-3001"
+    },
+    {
+      "match_id": "SOLVERDE-3002",
+      "date": "2026-06-16T18:00:00",
+      "teams": ["Spain", "Germany"],
+      "odds": {
+        "home_win": 2.38,
+        "draw": 3.12,
+        "away_win": 2.97,
+        "over_2_5": 1.94,
+        "under_2_5": 1.83,
+        "btts_yes": 1.71,
+        "btts_no": 2.09
+      },
+      "path": "/apostas/futebol/spain-germany/SOLVERDE-3002"
+    }
+  ]
+}
