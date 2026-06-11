@@ -1,0 +1,6 @@
+export { HomePage } from './HomePage'
+export { MatchesPage } from './MatchesPage'
+export { BettingPage } from './BettingPage'
+export { LeaguesPage } from './LeaguesPage'
+export { SettingsPage } from './SettingsPage'
+export { AboutPage } from './AboutPage'

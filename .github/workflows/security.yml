@@ -2,6 +2,9 @@ name: Security
 
 on:
   push:
+    branches:
+      - main
+      - master
   pull_request:
     branches:
       - main
@@ -20,9 +23,12 @@ permissions:
   security-events: write
 
 jobs:
-  dependency-audit:
-    name: Dependency audit
+  backend-security:
+    name: Backend Security
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - name: Check out repository
@@ -33,7 +39,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install pip-audit
         run: |
@@ -43,14 +49,6 @@ jobs:
       - name: Audit Python dependencies
         run: pip-audit -r requirements.txt --progress-spinner off
 
-  codeql:
-    name: CodeQL
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -59,5 +57,50 @@ jobs:
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
 
-      - name: Analyze
+      - name: Analyze with CodeQL
         uses: github/codeql-action/analyze@v4
+
+  frontend-security:
+    name: Frontend Security
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Install and run Snyk
+        run: |
+          npm install -g snyk
+          snyk test --severity-threshold=high || true
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
