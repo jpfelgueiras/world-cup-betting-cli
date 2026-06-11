@@ -592,18 +592,17 @@ class TestBetanoScraperExtended:
         self, mock_request, scraper
     ):
         """Test get_upcoming_matches falls back to mock data on general exception"""
-        # Make _get_mock_upcoming_matches work by not raising in except block
-        # The actual code re-raises as ScraperError for general exceptions
-        # So we test that it raises ScraperError instead
-        from src.scrapers.base_scraper import ScraperError
+        from src.scrapers.base_scraper import OddsData
 
         mock_request.side_effect = Exception("Unexpected error")
 
-        # The code converts general exceptions to ScraperError
-        with pytest.raises(ScraperError) as exc_info:
-            scraper.get_upcoming_matches(days_ahead=7)
+        # Mock implementation falls back to mock data on any exception
+        matches = scraper.get_upcoming_matches(days_ahead=7)
 
-        assert "Unexpected error" in str(exc_info.value)
+        # Should return mock data even when scraping fails
+        assert isinstance(matches, list)
+        assert len(matches) > 0
+        assert all(isinstance(m, OddsData) for m in matches)
 
     def test_parse_match_element_returns_none(self, scraper):
         """Test _parse_match_element returns None (placeholder implementation)"""

@@ -40,7 +40,7 @@ from .base_scraper import BaseScraper, OddsData, ScraperError
 class BetclicScraper(BaseScraper):
     """
     Scraper for Betclic.pt - MOCK IMPLEMENTATION.
-    
+
     See module docstring for production requirements and limitations.
     """
 
@@ -60,7 +60,7 @@ class BetclicScraper(BaseScraper):
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
-        
+
         ⚠️  MOCK: Currently returns mock data. Real implementation requires:
         - HTTP request to Betclic API/endpoint
         - JSON response parsing
@@ -73,14 +73,14 @@ class BetclicScraper(BaseScraper):
                 return candidate
         except ScraperError:
             pass
-        
+
         # FALLBACK: Mock data
         return self._create_mock_odds(home_team, away_team, match_date)
 
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """
         Get odds for all upcoming matches within the specified window.
-        
+
         ⚠️  MOCK: Attempts real scrape but always falls back to mock data.
         """
         try:
@@ -92,19 +92,19 @@ class BetclicScraper(BaseScraper):
             print(f"⚠️  Betclic scraping not implemented, using mock: {e}")
         except Exception as e:
             print(f"⚠️  Betclic scraping failed, using mock: {str(e)}")
-        
+
         return self._get_mock_upcoming_matches(days_ahead)
 
     def parse_upcoming_matches_json(self, payload: str) -> List[OddsData]:
         """
         Parse Betclic JSON response into normalized odds rows.
-        
+
         Args:
             payload: Raw JSON response from Betclic
-            
+
         Returns:
             List of parsed OddsData objects
-            
+
         Note: Expected JSON structure is PLACEHOLDER and must be verified
         against actual Betclic API response format.
         """
@@ -172,7 +172,7 @@ class BetclicScraper(BaseScraper):
     ) -> OddsData:
         """
         Create mock odds data for demonstration/testing.
-        
+
         ⚠️  MOCK DATA ONLY - Not real odds from Betclic.pt
         """
         if match_date is None:
@@ -202,7 +202,7 @@ class BetclicScraper(BaseScraper):
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """
         Generate mock upcoming matches for demonstration/testing.
-        
+
         ⚠️  MOCK DATA ONLY - Not real fixtures from Betclic.pt
         """
         teams = [

@@ -11,23 +11,23 @@ from typing import Optional
 def init_sentry(dsn: Optional[str] = None, environment: str = "production"):
     """
     Initialize Sentry SDK for error tracking.
-    
+
     Args:
         dsn: Sentry DSN (defaults to SENTRY_DSN env var)
         environment: Deployment environment (production, staging, development)
-    
+
     Returns:
         True if Sentry was initialized, False otherwise
     """
     dsn = dsn or os.getenv("SENTRY_DSN")
-    
+
     if not dsn:
         return False
-    
+
     try:
         import sentry_sdk
         from sentry_sdk.integrations.fastapi import FastApiIntegration
-        
+
         sentry_sdk.init(
             dsn=dsn,
             environment=environment,
@@ -43,9 +43,9 @@ def init_sentry(dsn: Optional[str] = None, environment: str = "production"):
             # Add release information
             release=os.getenv("SENTRY_RELEASE", "world-cup-betting-cli@0.1.0"),
         )
-        
+
         return True
-        
+
     except ImportError:
         print("⚠️  Sentry SDK not installed. Run: pip install sentry-sdk[fastapi]")
         return False
