@@ -15,12 +15,11 @@ from typing import Dict, List
 from fastapi import FastAPI, Request, Security, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from fastapi.security import APIKeyHeader
 
 from ..config import (
-    API_KEY_HEADER,
     CORS_ORIGINS,
     ENABLE_CORS,
     ENABLE_METRICS,
@@ -51,28 +50,28 @@ _rate_limit_storage: Dict[str, List[float]] = defaultdict(list)
 def check_rate_limit(client_ip: str) -> bool:
     """
     Check if client IP has exceeded rate limit.
-    
+
     Args:
         client_ip: Client IP address
-        
+
     Returns:
         True if request is allowed, False if rate limited
     """
     current_time = time.time()
     window = RATE_LIMIT_WINDOW_SECONDS
     max_requests = RATE_LIMIT_PER_IP
-    
+
     # Clean old entries
     _rate_limit_storage[client_ip] = [
         timestamp
         for timestamp in _rate_limit_storage[client_ip]
         if current_time - timestamp < window
     ]
-    
+
     # Check limit
     if len(_rate_limit_storage[client_ip]) >= max_requests:
         return False
-    
+
     # Record this request
     _rate_limit_storage[client_ip].append(current_time)
     return True
@@ -83,15 +82,15 @@ async def verify_api_key(
 ) -> str:
     """
     Verify API key for authentication.
-    
+
     In development mode (DEV_MODE=true), API key is optional.
     In production, valid API key is required for all endpoints.
     """
     dev_mode = os.getenv("DEV_MODE", "false").lower() == "true"
-    
+
     if dev_mode and not api_key:
         return "dev-mode"
-    
+
     if not api_key:
         from fastapi import HTTPException
         raise HTTPException(
@@ -99,7 +98,7 @@ async def verify_api_key(
             detail="API key required",
             headers={"WWW-Authenticate": "ApiKey"},
         )
-    
+
     if api_key not in VALID_API_KEYS:
         from fastapi import HTTPException
         raise HTTPException(
@@ -107,7 +106,7 @@ async def verify_api_key(
             detail="Invalid API key",
             headers={"WWW-Authenticate": "ApiKey"},
         )
-    
+
     return api_key
 
 
@@ -115,7 +114,7 @@ async def verify_api_key(
 async def lifespan(app: FastAPI):
     """Manage application startup and shutdown lifecycle."""
     logger.info("🚀 World Cup Betting Insights API starting...")
-    
+
     # Log security configuration
     logger.info(f"🔒 Rate limiting: {RATE_LIMIT_PER_IP} req/{RATE_LIMIT_WINDOW_SECONDS}s")
     logger.info(f"🔒 CORS enabled: {ENABLE_CORS}")
@@ -241,20 +240,20 @@ You must be 18+ to gamble in Portugal.
     async def add_security_headers(request: Request, call_next):
         """Add security headers to all responses."""
         response = await call_next(request)
-        
+
         # Security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-        
+
         # Rate limit headers
         client_ip = request.client.host if request.client else "unknown"
         remaining = max(0, RATE_LIMIT_PER_IP - len(_rate_limit_storage.get(client_ip, [])))
         response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT_PER_IP)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
-        
+
         return response
 
     # Add rate limiting middleware
@@ -264,22 +263,22 @@ You must be 18+ to gamble in Portugal.
         # Skip rate limiting for health checks and metrics
         if request.url.path in ["/health", "/api/v1/health", "/", "/metrics"]:
             return await call_next(request)
-        
+
         client_ip = request.client.host if request.client else "unknown"
-        
+
         if not check_rate_limit(client_ip):
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={
                     "error": "RateLimitExceeded",
-                    "message": f"Rate limit exceeded. Max {RATE_LIMIT_PER_IP} requests per {RATE_LIMIT_WINDOW_SECONDS} seconds.",
+                    "message": f"Rate limit exceeded. Max {RATE_LIMIT_PER_IP}/{RATE_LIMIT_WINDOW_SECONDS}s.",
                     "code": "RATE_LIMIT_EXCEEDED",
                 },
                 headers={
                     "Retry-After": str(RATE_LIMIT_WINDOW_SECONDS),
                 },
             )
-        
+
         return await call_next(request)
 
     # Register routes
@@ -346,7 +345,7 @@ You must be 18+ to gamble in Portugal.
     async def health_check():
         """
         Public health check endpoint.
-        
+
         Returns basic health status without requiring authentication.
         """
         return {
@@ -361,7 +360,7 @@ You must be 18+ to gamble in Portugal.
         async def metrics():
             """
             Prometheus metrics endpoint.
-            
+
             Returns metrics in Prometheus text exposition format.
             Should be scraped by Prometheus server.
             """
@@ -369,9 +368,6 @@ You must be 18+ to gamble in Portugal.
 
     return app
 
-
-# Import JSONResponse here to avoid undefined name in middleware
-from fastapi.responses import JSONResponse
 
 # Create default app instance
 app = create_app()

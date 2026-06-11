@@ -40,7 +40,7 @@ from .base_scraper import BaseScraper, OddsData, ScraperError
 class SolverdeScraper(BaseScraper):
     """
     Scraper for Solverde.pt - MOCK IMPLEMENTATION.
-    
+
     See module docstring for production requirements and limitations.
     """
 
@@ -62,7 +62,7 @@ class SolverdeScraper(BaseScraper):
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
-        
+
         ⚠️  MOCK: Currently returns mock data. Real implementation requires:
         - HTTP request to Solverde API/endpoint
         - JSON response parsing
@@ -75,14 +75,14 @@ class SolverdeScraper(BaseScraper):
                 return candidate
         except ScraperError:
             pass
-        
+
         # FALLBACK: Mock data
         return self._create_mock_odds(home_team, away_team, match_date)
 
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """
         Get odds for all upcoming matches within the specified window.
-        
+
         ⚠️  MOCK: Attempts real scrape but always falls back to mock data.
         """
         try:
@@ -94,19 +94,19 @@ class SolverdeScraper(BaseScraper):
             print(f"⚠️  Solverde scraping not implemented, using mock: {e}")
         except Exception as e:
             print(f"⚠️  Solverde scraping failed, using mock: {str(e)}")
-        
+
         return self._get_mock_upcoming_matches(days_ahead)
 
     def parse_upcoming_matches_json(self, payload: str) -> List[OddsData]:
         """
         Parse Solverde JSON response into normalized odds rows.
-        
+
         Args:
             payload: Raw JSON response from Solverde
-            
+
         Returns:
             List of parsed OddsData objects
-            
+
         Note: Expected JSON structure is PLACEHOLDER and must be verified
         against actual Solverde API response format.
         """
@@ -169,7 +169,7 @@ class SolverdeScraper(BaseScraper):
     ) -> OddsData:
         """
         Create mock odds data for demonstration/testing.
-        
+
         ⚠️  MOCK DATA ONLY - Not real odds from Solverde.pt
         """
         if match_date is None:
@@ -199,7 +199,7 @@ class SolverdeScraper(BaseScraper):
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """
         Generate mock upcoming matches for demonstration/testing.
-        
+
         ⚠️  MOCK DATA ONLY - Not real fixtures from Solverde.pt
         """
         teams = [

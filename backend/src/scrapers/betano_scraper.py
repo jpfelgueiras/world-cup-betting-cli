@@ -41,7 +41,7 @@ from .base_scraper import BaseScraper, OddsData, ScraperError
 class BetanoScraper(BaseScraper):
     """
     Scraper for Betano.pt - MOCK IMPLEMENTATION.
-    
+
     See module docstring for production requirements and limitations.
     """
 
@@ -61,12 +61,12 @@ class BetanoScraper(BaseScraper):
     ) -> Optional[OddsData]:
         """
         Get odds for a specific match.
-        
+
         ⚠️  MOCK: Currently returns mock data. Real implementation requires:
         - HTTP request to Betano.pt
         - HTML parsing with verified selectors
         - JavaScript rendering support
-        
+
         This uses the parser-backed approach and falls back to mock data.
         """
         try:
@@ -83,7 +83,7 @@ class BetanoScraper(BaseScraper):
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
         """
         Get odds for all upcoming matches within the specified window.
-        
+
         ⚠️  MOCK: Attempts real scrape but always falls back to mock data.
         Production implementation should:
         - Make authenticated request to Betano sports page
@@ -103,19 +103,19 @@ class BetanoScraper(BaseScraper):
             print(f"⚠️  Betano scraping not implemented, using mock data: {e}")
         except Exception as e:
             print(f"⚠️  Betano scraping failed, using mock: {str(e)}")
-        
+
         return self._get_mock_upcoming_matches(days_ahead)
 
     def parse_upcoming_matches_html(self, html: str) -> List[OddsData]:
         """
         Parse Betano upcoming-match HTML into normalized odds rows.
-        
+
         Args:
             html: Raw HTML response from Betano.pt
-            
+
         Returns:
             List of parsed OddsData objects
-            
+
         Note: CSS selectors below are PLACEHOLDERS and must be verified
         against the live Betano.pt site structure.
         """
@@ -133,7 +133,7 @@ class BetanoScraper(BaseScraper):
     def _parse_match_element(self, elem) -> Optional[OddsData]:
         """
         Parse one Betano match card from HTML.
-        
+
         ⚠️  PLACEHOLDER: Selectors must be verified against live site.
         """
 
@@ -210,7 +210,7 @@ class BetanoScraper(BaseScraper):
     ) -> OddsData:
         """
         Create mock odds data for demonstration/testing.
-        
+
         ⚠️  MOCK DATA ONLY - Not real odds from Betano.pt
         """
 
@@ -241,7 +241,7 @@ class BetanoScraper(BaseScraper):
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
         """
         Generate mock upcoming matches for demonstration/testing.
-        
+
         ⚠️  MOCK DATA ONLY - Not real fixtures from Betano.pt
         """
 
