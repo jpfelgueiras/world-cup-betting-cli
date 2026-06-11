@@ -182,13 +182,15 @@ class TestPredictCommand:
         mock_engine.return_value = mock_engine_instance
         mock_engine_instance.predict_match.return_value = mock_prediction
         
-        # Create a proper mock odds object
+        # Create a proper mock odds object with all required attributes
         mock_odds = Mock(spec=OddsData)
         mock_odds.home_win = 2.0
         mock_odds.draw = 3.0
         mock_odds.away_win = 2.5
         mock_odds.over_2_5 = 1.8
         mock_odds.btts_yes = 1.7
+        mock_odds.site = "betano"  # Add missing site attribute
+        mock_odds.site_name = "Betano.pt"
         mock_odds.has_1x2.return_value = True
         
         mock_scraper = Mock()
