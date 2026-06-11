@@ -33,5 +33,5 @@ prometheus-client>=0.19.0
 sentry-sdk[fastapi]>=1.39.0
 
 # Security (optional, for production)
-python-jose[cryptography]>=3.3.0
+python-jose[cryptography]>=3.5.0
 passlib[bcrypt]>=1.7.4
