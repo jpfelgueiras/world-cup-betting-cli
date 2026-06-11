@@ -88,6 +88,7 @@ class BetanoScraper(BaseScraper):
 
     def _parse_match_element(self, elem) -> Optional[OddsData]:
         """Parse one Betano match card from captured or live HTML."""
+
         def text(selector: str) -> Optional[str]:
             node = elem.select_one(selector)
             return node.get_text(strip=True) if node else None
