@@ -1,18 +1,16 @@
-"""
-Solverde.pt scraper
+"""Solverde.pt scraper with fixture-testable parsing helpers."""
 
-Solverde is a Portuguese casino and betting operator.
-"""
-
+import json
 from datetime import datetime, timedelta
 from typing import List, Optional
+from urllib.parse import urljoin
 
 from ..config import BETTING_SITES
 from .base_scraper import BaseScraper, OddsData, ScraperError
 
 
 class SolverdeScraper(BaseScraper):
-    """Scraper for Solverde.pt"""
+    """Scraper for Solverde.pt."""
 
     def __init__(self):
         config = BETTING_SITES.get("solverde", {})
@@ -30,21 +28,23 @@ class SolverdeScraper(BaseScraper):
     def get_match_odds(
         self, home_team: str, away_team: str, match_date: Optional[datetime] = None
     ) -> Optional[OddsData]:
-        """Get odds for a specific match"""
         try:
-            return self._create_mock_odds(home_team, away_team, match_date)
+            matches = self.get_upcoming_matches(days_ahead=7)
+            candidate = self._find_match(matches, home_team, away_team, match_date)
+            if candidate:
+                return candidate
         except ScraperError:
-            raise
-        except Exception as e:
-            raise ScraperError(
-                f"Error scraping Solverde for {home_team} vs {away_team}: {str(e)}"
-            )
+            pass
+        return self._create_mock_odds(home_team, away_team, match_date)
 
     def get_upcoming_matches(self, days_ahead: int = 7) -> List[OddsData]:
-        """Get odds for all upcoming matches"""
         try:
+            response = self._make_request(self.sports_url)
+            matches = self.parse_upcoming_matches_json(response.text)
+            if matches:
+                return matches
             return self._get_mock_upcoming_matches(days_ahead)
-        except ScraperError as e:
+        except (ScraperError, ValueError, json.JSONDecodeError) as e:
             print(f"Solverde scraping failed, using mock: {e}")
             return self._get_mock_upcoming_matches(days_ahead)
         except Exception as e:
@@ -52,16 +52,66 @@ class SolverdeScraper(BaseScraper):
                 f"Error getting upcoming matches from Solverde: {str(e)}"
             )
 
+    def parse_upcoming_matches_json(self, payload: str) -> List[OddsData]:
+        data = json.loads(payload)
+        matches: List[OddsData] = []
+
+        for item in data.get("matches", []):
+            teams = item.get("teams", [])
+            odds = item.get("odds", {})
+            if len(teams) != 2:
+                continue
+
+            try:
+                match_date = datetime.fromisoformat(item["date"])
+            except (KeyError, ValueError):
+                continue
+
+            matches.append(
+                OddsData(
+                    match_id=item.get("match_id", ""),
+                    home_team=teams[0],
+                    away_team=teams[1],
+                    match_date=match_date,
+                    site="solverde",
+                    site_name=self.site_name,
+                    home_win=odds.get("home_win"),
+                    draw=odds.get("draw"),
+                    away_win=odds.get("away_win"),
+                    over_2_5=odds.get("over_2_5"),
+                    under_2_5=odds.get("under_2_5"),
+                    btts_yes=odds.get("btts_yes"),
+                    btts_no=odds.get("btts_no"),
+                    url=urljoin(self.base_url, item.get("path", "")),
+                )
+            )
+
+        return [match for match in matches if match.has_1x2()]
+
+    def _find_match(
+        self,
+        matches: List[OddsData],
+        home_team: str,
+        away_team: str,
+        match_date: Optional[datetime],
+    ) -> Optional[OddsData]:
+        home_norm = self.normalize_team_name(home_team)
+        away_norm = self.normalize_team_name(away_team)
+        for match in matches:
+            if (
+                self.normalize_team_name(match.home_team) == home_norm
+                and self.normalize_team_name(match.away_team) == away_norm
+            ):
+                if match_date is None or match.match_date.date() == match_date.date():
+                    return match
+        return None
+
     def _create_mock_odds(
         self, home_team: str, away_team: str, match_date: Optional[datetime] = None
     ) -> OddsData:
-        """Create mock odds data for demonstration"""
-
         if match_date is None:
             match_date = datetime.now() + timedelta(days=3)
 
-        # Deterministic odds based on team name lengths
-        # Includes bookmaker margin (implied probabilities sum > 1.0)
         base_home = 1.52 + (len(home_team) % 8) * 0.11
         base_away = 1.72 + (len(away_team) % 8) * 0.11
         base_draw = 2.82
@@ -84,8 +134,6 @@ class SolverdeScraper(BaseScraper):
         )
 
     def _get_mock_upcoming_matches(self, days_ahead: int) -> List[OddsData]:
-        """Generate mock upcoming matches"""
-
         teams = [
             ("Portugal", "Brazil"),
             ("Spain", "Germany"),
