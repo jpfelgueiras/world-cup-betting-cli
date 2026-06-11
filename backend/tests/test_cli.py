@@ -51,9 +51,7 @@ class TestPredictCommand:
 
     @patch("src.cli.main.PredictionEngine")
     @patch("src.cli.main.get_scrapers")
-    def test_predict_invalid_match_format(
-        self, mock_get_scrapers, mock_engine, runner
-    ):
+    def test_predict_invalid_match_format(self, mock_get_scrapers, mock_engine, runner):
         """Test predict with invalid match format."""
         mock_engine.return_value.predict_match.return_value = MagicMock()
         mock_get_scrapers.return_value = []
@@ -69,8 +67,14 @@ class TestPredictCommand:
     @patch("src.cli.main.PredictionEngine")
     @patch("src.cli.main.create_mock_team_data")
     def test_predict_basic(
-        self, mock_create_team, mock_engine, mock_get_scrapers,
-        mock_output, mock_gen_rec, mock_calc_avg, runner
+        self,
+        mock_create_team,
+        mock_engine,
+        mock_get_scrapers,
+        mock_output,
+        mock_gen_rec,
+        mock_calc_avg,
+        runner,
     ):
         """Test basic predict command."""
         # Mock prediction engine
@@ -288,9 +292,7 @@ class TestErrorHandling:
         return CliRunner()
 
     @patch("src.cli.main.PredictionEngine")
-    def test_predict_no_odds_available(
-        self, mock_engine, runner
-    ):
+    def test_predict_no_odds_available(self, mock_engine, runner):
         """Test predict when no odds are available."""
         mock_engine.return_value.predict_match.return_value = MagicMock()
 

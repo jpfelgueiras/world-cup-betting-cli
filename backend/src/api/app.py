@@ -93,6 +93,7 @@ async def verify_api_key(
 
     if not api_key:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key required",
@@ -101,6 +102,7 @@ async def verify_api_key(
 
     if api_key not in VALID_API_KEYS:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
@@ -116,7 +118,9 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 World Cup Betting Insights API starting...")
 
     # Log security configuration
-    logger.info(f"🔒 Rate limiting: {RATE_LIMIT_PER_IP} req/{RATE_LIMIT_WINDOW_SECONDS}s")
+    logger.info(
+        f"🔒 Rate limiting: {RATE_LIMIT_PER_IP} req/{RATE_LIMIT_WINDOW_SECONDS}s"
+    )
     logger.info(f"🔒 CORS enabled: {ENABLE_CORS}")
     logger.info(f"🔒 API Key auth: {'enabled' if VALID_API_KEYS else 'disabled'}")
     logger.info(f"📊 Metrics enabled: {ENABLE_METRICS}")
@@ -246,11 +250,15 @@ You must be 18+ to gamble in Portugal.
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        response.headers["Permissions-Policy"] = (
+            "geolocation=(), microphone=(), camera=()"
+        )
 
         # Rate limit headers
         client_ip = request.client.host if request.client else "unknown"
-        remaining = max(0, RATE_LIMIT_PER_IP - len(_rate_limit_storage.get(client_ip, [])))
+        remaining = max(
+            0, RATE_LIMIT_PER_IP - len(_rate_limit_storage.get(client_ip, []))
+        )
         response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT_PER_IP)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
 
@@ -356,6 +364,7 @@ You must be 18+ to gamble in Portugal.
 
     # Prometheus metrics endpoint (if enabled)
     if ENABLE_METRICS:
+
         @app.get("/metrics", tags=["Monitoring"])
         async def metrics():
             """

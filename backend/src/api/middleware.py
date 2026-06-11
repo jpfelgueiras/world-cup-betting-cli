@@ -71,14 +71,20 @@ async def prometheus_middleware(request: Request, call_next: Callable) -> Respon
 
         # Track errors (4xx and 5xx)
         if response.status_code >= 400:
-            error_type = "client_error" if response.status_code < 500 else "server_error"
-            ERROR_COUNT.labels(method=method, endpoint=endpoint, error_type=error_type).inc()
+            error_type = (
+                "client_error" if response.status_code < 500 else "server_error"
+            )
+            ERROR_COUNT.labels(
+                method=method, endpoint=endpoint, error_type=error_type
+            ).inc()
 
         return response
 
     except Exception:
         # Record error
-        ERROR_COUNT.labels(method=method, endpoint=endpoint, error_type="exception").inc()
+        ERROR_COUNT.labels(
+            method=method, endpoint=endpoint, error_type="exception"
+        ).inc()
         raise
 
     finally:
