@@ -94,9 +94,13 @@ class BetanoScraper(BaseScraper):
         if not all([match_id, home_team, away_team, match_date_raw]):
             return None
 
+        # Ensure match_date_raw is a string before parsing
+        if not isinstance(match_date_raw, str):
+            return None
+
         try:
             match_date = datetime.fromisoformat(match_date_raw)
-        except ValueError:
+        except (ValueError, TypeError):
             return None
 
         link = elem.select_one("a.match-link")
