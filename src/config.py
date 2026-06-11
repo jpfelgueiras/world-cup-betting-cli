@@ -55,18 +55,17 @@ def get_env_list(name: str, default: List[str]) -> List[str]:
 def validate_required_env_vars() -> List[str]:
     """
     Validate that required environment variables are set.
-    
+
     Returns:
         List of missing required environment variable names
     """
-    required = []
     missing = []
-    
+
     # Check API keys that should be set in production
     if not os.getenv("FBREF_API_KEY") and not os.getenv("FOOTBALL_DATA_API_KEY"):
         # At least one data source should be configured
         pass  # Not strictly required for mock mode
-    
+
     return missing
 
 

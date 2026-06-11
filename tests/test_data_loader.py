@@ -34,7 +34,7 @@ class TestDataLoaderInit:
     def test_init_default_cache_dir(self):
         """Test initialization with default cache directory."""
         loader = DataLoader()
-        
+
         assert loader.cache_dir is not None
         assert loader.db_path is not None
         assert loader.db_path.exists() or loader.db_path.parent.exists()
@@ -43,7 +43,7 @@ class TestDataLoaderInit:
         """Test initialization with custom cache directory."""
         with tempfile.TemporaryDirectory() as tmpdir:
             loader = DataLoader(cache_dir=tmpdir)
-            
+
             assert str(loader.cache_dir) == tmpdir
             assert loader.db_path.exists()
 
@@ -51,8 +51,8 @@ class TestDataLoaderInit:
         """Test that initialization creates necessary directories."""
         with tempfile.TemporaryDirectory() as tmpdir:
             custom_dir = os.path.join(tmpdir, "nested", "cache")
-            loader = DataLoader(cache_dir=custom_dir)
-            
+            DataLoader(cache_dir=custom_dir)
+
             assert Path(custom_dir).exists()
 
 
@@ -69,29 +69,29 @@ class TestDatabaseInitialization:
         """Test that database tables are created on init."""
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
-        
+
         # Check odds_cache table exists
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='odds_cache'"
         )
         assert cursor.fetchone() is not None
-        
+
         # Check predictions_log table exists
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='predictions_log'"
         )
         assert cursor.fetchone() is not None
-        
+
         conn.close()
 
     def test_odds_cache_schema(self, loader):
         """Test odds_cache table schema."""
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute("PRAGMA table_info(odds_cache)")
         columns = {row[1]: row[2] for row in cursor.fetchall()}
-        
+
         assert "match_id" in columns
         assert "site" in columns
         assert "home_team" in columns
@@ -99,24 +99,24 @@ class TestDatabaseInitialization:
         assert "home_win" in columns
         assert "draw" in columns
         assert "away_win" in columns
-        
+
         conn.close()
 
     def test_predictions_log_schema(self, loader):
         """Test predictions_log table schema."""
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute("PRAGMA table_info(predictions_log)")
         columns = {row[1]: row[2] for row in cursor.fetchall()}
-        
+
         assert "home_team" in columns
         assert "away_team" in columns
         assert "home_prob" in columns
         assert "draw_prob" in columns
         assert "away_prob" in columns
         assert "actual_result" in columns
-        
+
         conn.close()
 
 
@@ -144,9 +144,9 @@ class TestCacheOdds:
         mock_odds.under_2_5 = 2.00
         mock_odds.btts_yes = 1.70
         mock_odds.btts_no = 2.10
-        
+
         loader.cache_odds(mock_odds)
-        
+
         # Verify data was cached
         results = loader.get_cached_odds("Portugal", "Brazil", max_age_hours=1)
         assert len(results) >= 1
@@ -166,14 +166,14 @@ class TestCacheOdds:
         mock_odds.under_2_5 = 2.00
         mock_odds.btts_yes = 1.70
         mock_odds.btts_no = 2.10
-        
+
         # Cache twice
         loader.cache_odds(mock_odds)
         mock_odds.home_win = 2.20  # Change value
         loader.cache_odds(mock_odds)
-        
+
         # Should only have one record (upsert)
-        results = loader.get_cached_odds("Portugal", "Brazil", max_age_hours=1)
+        loader.get_cached_odds("Portugal", "Brazil", max_age_hours=1)
         # Note: Due to UNIQUE constraint, should be 1 record
 
 
@@ -206,9 +206,9 @@ class TestGetCachedOdds:
         mock_odds.under_2_5 = 2.00
         mock_odds.btts_yes = 1.70
         mock_odds.btts_no = 2.10
-        
+
         loader.cache_odds(mock_odds)
-        
+
         # Search by team name
         results = loader.get_cached_odds("Portugal", "Spain", max_age_hours=1)
         assert len(results) >= 1
@@ -229,7 +229,7 @@ class TestGetCachedOdds:
         mock_odds.under_2_5 = 2.00
         mock_odds.btts_yes = 1.70
         mock_odds.btts_no = 2.10
-        
+
         # Manually insert old record
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
@@ -258,7 +258,7 @@ class TestGetCachedOdds:
         )
         conn.commit()
         conn.close()
-        
+
         # Should not return old data with 1 hour max age
         results = loader.get_cached_odds("OldTeam", "Team", max_age_hours=1)
         assert len(results) == 0
@@ -280,16 +280,16 @@ class TestPredictionLogging:
         mock_prediction.home_win_prob = 0.45
         mock_prediction.draw_prob = 0.30
         mock_prediction.away_win_prob = 0.25
-        
+
         loader.log_prediction("Portugal", "Brazil", mock_prediction)
-        
+
         # Verify logged (check database directly)
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM predictions_log")
         count = cursor.fetchone()[0]
         conn.close()
-        
+
         assert count >= 1
 
     def test_log_prediction_with_result(self, loader):
@@ -299,16 +299,16 @@ class TestPredictionLogging:
         mock_prediction.home_win_prob = 0.45
         mock_prediction.draw_prob = 0.30
         mock_prediction.away_win_prob = 0.25
-        
+
         loader.log_prediction("Portugal", "Brazil", mock_prediction, actual_result="home")
-        
+
         # Verify result was logged
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT actual_result FROM predictions_log WHERE home_team LIKE '%Portugal%'")
         row = cursor.fetchone()
         conn.close()
-        
+
         assert row is not None
         assert row[0] == "home"
 
@@ -325,7 +325,7 @@ class TestPredictionAccuracy:
     def test_accuracy_empty_database(self, loader):
         """Test accuracy calculation with no data."""
         accuracy = loader.get_prediction_accuracy(days_back=30)
-        
+
         assert accuracy["total_predictions"] == 0
         assert accuracy["accuracy"] == 0
 
@@ -334,7 +334,7 @@ class TestPredictionAccuracy:
         # Insert test predictions
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
-        
+
         # Correct home prediction
         cursor.execute(
             """
@@ -347,7 +347,7 @@ class TestPredictionAccuracy:
                 0.60, 0.25, 0.15, "home", datetime.now().isoformat()
             ),
         )
-        
+
         # Incorrect prediction
         cursor.execute(
             """
@@ -360,12 +360,12 @@ class TestPredictionAccuracy:
                 0.60, 0.25, 0.15, "away", datetime.now().isoformat()
             ),
         )
-        
+
         conn.commit()
         conn.close()
-        
+
         accuracy = loader.get_prediction_accuracy(days_back=30)
-        
+
         assert accuracy["total_predictions"] == 2
         assert accuracy["correct_predictions"] == 1
         assert accuracy["accuracy"] == 50.0
@@ -377,28 +377,28 @@ class TestFBrefLoader:
     def test_fbref_init(self):
         """Test FBrefLoader initialization."""
         loader = FBrefLoader()
-        
+
         assert loader.base_url == "https://fbref.com"
 
     def test_get_team_stats_returns_none(self):
         """Test that get_team_stats returns None (skeleton)."""
         loader = FBrefLoader()
         result = loader.get_team_stats("Any Team")
-        
+
         assert result is None
 
     def test_get_match_history_returns_empty(self):
         """Test that get_match_history returns empty list (skeleton)."""
         loader = FBrefLoader()
         result = loader.get_match_history("Any Team", last_n=10)
-        
+
         assert result == []
 
     def test_get_head_to_head_returns_zeros(self):
         """Test that get_head_to_head returns zeros (skeleton)."""
         loader = FBrefLoader()
         result = loader.get_head_to_head("Team A", "Team B")
-        
+
         assert result == {"wins": 0, "draws": 0, "losses": 0}
 
 
@@ -408,21 +408,21 @@ class TestFootballDataLoader:
     def test_football_data_init_no_key(self):
         """Test FootballDataLoader initialization without API key."""
         loader = FootballDataLoader()
-        
+
         assert loader.api_key is None
         assert loader.base_url == "https://api.football-data.org/v4"
 
     def test_football_data_init_with_key(self):
         """Test FootballDataLoader initialization with API key."""
         loader = FootballDataLoader(api_key="test-key-123")
-        
+
         assert loader.api_key == "test-key-123"
 
     def test_get_team_data_no_key(self):
         """Test get_team_data returns None without API key."""
         loader = FootballDataLoader()
         result = loader.get_team_data(123)
-        
+
         assert result is None
 
     @patch("requests.get")
@@ -432,10 +432,10 @@ class TestFootballDataLoader:
         mock_response.status_code = 200
         mock_response.json.return_value = {"name": "FC Porto"}
         mock_get.return_value = mock_response
-        
+
         loader = FootballDataLoader(api_key="test-key")
         result = loader.get_team_data(123)
-        
+
         assert result is not None
         assert isinstance(result, TeamData)
 
@@ -443,8 +443,8 @@ class TestFootballDataLoader:
     def test_get_team_data_with_key_error(self, mock_get):
         """Test get_team_data handles API errors."""
         mock_get.side_effect = Exception("API Error")
-        
+
         loader = FootballDataLoader(api_key="test-key")
         result = loader.get_team_data(123)
-        
+
         assert result is None
