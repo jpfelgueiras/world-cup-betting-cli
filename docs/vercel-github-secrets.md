@@ -12,7 +12,7 @@ Before you start, make sure you have:
 - Access to the Vercel account or team that owns the frontend project.
 - A Vercel project created for the `frontend/` directory.
 - The deployed backend URL, or a placeholder you will replace after the backend is deployed.
-- A frontend API key value that matches one of the backend `BACKEND_API_KEYS` entries.
+- A frontend API key value that matches one of the backend Render `VALID_API_KEYS` entries.
 
 Do not paste real token values into issues, pull requests, commits, chat logs, or screenshots.
 
@@ -25,8 +25,8 @@ Add these secrets in GitHub under `Settings -> Secrets and variables -> Actions 
 | `VERCEL_TOKEN` | Vercel account token used by the GitHub Action to run `vercel pull`, `vercel build`, and `vercel deploy`. | `vercel_token_from_account_settings` |
 | `VERCEL_ORG_ID` | Vercel team or personal account ID for the project owner. | `team_xxxxxxxxxxxxxxxx` |
 | `VERCEL_PROJECT_ID` | Vercel project ID for the frontend project. | `prj_xxxxxxxxxxxxxxxx` |
-| `VITE_API_URL` | Public URL for the deployed backend API. | `https://your-backend.koyeb.app` |
-| `VITE_API_KEY` | Browser-exposed API key sent by the frontend as `X-API-Key`. Must match one of the backend `BACKEND_API_KEYS` values. | `public-demo-client-key-change-me` |
+| `VITE_API_URL` | Public URL for the deployed backend API. | `https://your-backend.onrender.com` |
+| `VITE_API_KEY` | Browser-exposed API key sent by the frontend as `X-API-Key`. Must match one of the backend Render `VALID_API_KEYS` values. | `public-demo-client-key-change-me` |
 
 Related backend deployment secrets are documented in `docs/deployment-secrets.md`.
 
@@ -93,8 +93,8 @@ The frontend build uses Vite, so any variable whose name starts with `VITE_` is 
 
 Set these GitHub secrets:
 
-- `VITE_API_URL`: the public backend API URL, for example `https://your-backend.koyeb.app`.
-- `VITE_API_KEY`: a public/demo client key that the backend accepts in `BACKEND_API_KEYS`.
+- `VITE_API_URL`: the public backend API URL, for example `https://your-backend.onrender.com`.
+- `VITE_API_KEY`: a public/demo client key that the backend accepts in Render `VALID_API_KEYS`.
 
 Because `VITE_API_KEY` is shipped to every browser, do not use a private admin key. Treat it as public and rotate it if it is abused.
 
@@ -125,7 +125,7 @@ GitHub only shows secret values once while you enter them. To change a value lat
    - `Deploy Vercel output`
 4. Open the deployed Vercel URL.
 5. In browser developer tools, confirm API requests go to the `VITE_API_URL` backend and not to `localhost:8000`.
-6. If the app returns authentication errors, confirm `VITE_API_KEY` matches one of the backend `BACKEND_API_KEYS` values.
+6. If the app returns authentication errors, confirm `VITE_API_KEY` matches one of the backend Render `VALID_API_KEYS` values.
 
 ## Security notes
 

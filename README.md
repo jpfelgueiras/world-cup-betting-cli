@@ -69,7 +69,7 @@ Access the UI at `http://localhost:5173` and the API at `http://localhost:8000`.
 
 - [Backend README](backend/README.md) - Backend API documentation
 - [Frontend README](frontend/README.md) - Frontend UI documentation
-- [Free hosting deployment](docs/free-hosting-deployment.md) - Koyeb/Vercel/Netlify deployment guide
+- [Free hosting deployment](docs/free-hosting-deployment.md) - Render/Vercel/Netlify deployment guide
 - [Deployment secrets](docs/deployment-secrets.md) - GitHub Actions secrets required for deployment
 - [Vercel secrets for GitHub deployments](docs/vercel-github-secrets.md) - Step-by-step Vercel/GitHub Actions secret setup
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture overview

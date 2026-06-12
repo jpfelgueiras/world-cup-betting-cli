@@ -5,27 +5,44 @@ This repository is a split application:
 - `backend/`: FastAPI service packaged as a Docker image
 - `frontend/`: Vite/React static application
 
-The most practical free-hosting setup is:
+The selected free-hosting setup is:
 
-1. Backend on Koyeb free/nano service using `backend/Dockerfile`
+1. Backend on Render Free Web Service using `backend/Dockerfile`
 2. Frontend on Vercel Hobby using the Vite static build
 
 Netlify is also supported for the frontend through `netlify.toml`.
 
 ## Recommended free hosting options
 
-### Backend: Koyeb
+### Backend: Render Free Web Service
 
-Why: Koyeb can deploy a web service from this repository using the Dockerfile in `backend/`. The workflow in `.github/workflows/backend-deploy.yml` deploys the backend service to Koyeb whenever `main` changes under `backend/**`.
+Why: Render can build and run this backend from the existing Dockerfile, has a clear Free Web Service tier suitable for a demo API, and supports deploy hooks for GitHub Actions. The workflow in `.github/workflows/backend-deploy.yml` now runs backend validation first and then triggers Render only after those checks pass.
 
-What the workflow deploys:
+Important Render free-tier constraints:
 
-- App: `world-cup-betting`
-- Service: `backend`
-- Git workdir: `backend`
-- Builder: Docker
-- Port: `8000`
-- Route: `/:8000`
+- Free services can sleep after inactivity and have cold starts.
+- Free instances are memory-constrained; verify the backend fits because the dependency set includes pandas, scikit-learn, and xgboost.
+- Runtime filesystem changes are ephemeral. Do not rely on local SQLite/cache files as durable production storage.
+- If Render auto-deploy is enabled, Render may deploy immediately on push before GitHub Actions tests complete. Disable auto-deploy if you want the Actions workflow to be the deployment gate.
+
+Create the backend service in Render with:
+
+- Service type: Web Service
+- Source: this GitHub repository
+- Branch: `main`
+- Runtime/language: Docker
+- Root directory: `backend`
+- Dockerfile path: `Dockerfile`
+- Instance type: Free
+- Health check path: `/health`
+- Auto-deploy: off when GitHub Actions should gate deployments
+
+What the workflow does:
+
+- Installs the backend dependencies with Python 3.11
+- Runs `python -m pytest tests -q` in `backend/`
+- Builds the backend Docker image with `backend/Dockerfile`
+- Calls the secret Render deploy hook URL from `RENDER_DEPLOY_HOOK_URL` only on `main`
 
 ### Frontend: Vercel
 
@@ -55,14 +72,8 @@ Add these in GitHub at:
 
 ### Backend deployment secrets
 
-`KOYEB_API_TOKEN`
-: Koyeb API token. Create it in Koyeb account settings.
-
-`FRONTEND_URL`
-: The production frontend URL, for example `https://your-project.vercel.app`. The backend uses this as `CORS_ORIGINS`.
-
-`BACKEND_API_KEYS`
-: Comma-separated API key list accepted by the backend, for example `prod-key-please-change`. Use the same value, or one of the comma-separated values, as the frontend `VITE_API_KEY`.
+`RENDER_DEPLOY_HOOK_URL`
+: Secret Render deploy hook URL for the backend Web Service. Copy it from the Render service `Settings` page. Regenerate it in Render if it is exposed.
 
 ### Frontend deployment secrets
 
@@ -76,26 +87,26 @@ Add these in GitHub at:
 : Vercel project ID.
 
 `VITE_API_URL`
-: Backend public URL, for example `https://world-cup-betting-backend.koyeb.app`.
+: Backend public URL, for example `https://world-cup-betting-backend.onrender.com`.
 
 `VITE_API_KEY`
-: Browser-exposed API key sent as `X-API-Key`. It must match one of the values in `BACKEND_API_KEYS`.
+: Browser-exposed API key sent as `X-API-Key`. It must match one of the values in Render `VALID_API_KEYS`.
 
 Important: Vite variables are embedded into the frontend bundle. Do not use a private admin secret for `VITE_API_KEY`; treat it as a public client key. If you need strong security later, add real user authentication or a backend-for-frontend.
 
 ## Platform environment variables
 
-The GitHub Actions workflows pass the deployment values automatically, but these are the effective runtime values to understand.
+### Render backend runtime environment
 
-### Koyeb backend runtime environment
+Set these on the Render Web Service:
 
-- `PORT=8000`
 - `DEV_MODE=false`
 - `ENABLE_CORS=true`
-- `CORS_ORIGINS=$FRONTEND_URL`
-- `VALID_API_KEYS=$BACKEND_API_KEYS`
+- `CORS_ORIGINS=<frontend URL>`
+- `VALID_API_KEYS=<comma-separated backend API keys>`
 - `LOG_LEVEL=INFO`
-- `LOG_FILE=`
+
+Render provides `PORT` automatically. The backend Dockerfile starts Uvicorn with `${PORT:-8000}` and the health check uses the same value.
 
 Optional backend variables if you add real data sources or monitoring later:
 
@@ -111,16 +122,18 @@ Optional backend variables if you add real data sources or monitoring later:
 
 ## First deployment steps
 
-1. Create a Koyeb account and API token.
-2. Create a Vercel account and a Vercel project for the `frontend` directory.
-3. Add all GitHub repository secrets listed above.
-4. Merge this PR into `main`.
-5. Open GitHub Actions and run, or wait for, these workflows:
+1. Create a Render account and a new backend Web Service using the settings above.
+2. Add the Render runtime environment variables.
+3. Copy the Render deploy hook URL into the GitHub secret `RENDER_DEPLOY_HOOK_URL`.
+4. Create a Vercel account and a Vercel project for the `frontend` directory.
+5. Add all GitHub repository secrets listed above.
+6. Merge this PR into `main`.
+7. Open GitHub Actions and run, or wait for, these workflows:
    - `Backend Deploy`
    - `Frontend Deploy`
-6. After backend deploy finishes, copy the Koyeb service URL into the `VITE_API_URL` GitHub secret.
-7. After frontend deploy finishes, copy the Vercel URL into the `FRONTEND_URL` GitHub secret.
-8. Re-run both deploy workflows so CORS and frontend API URL are aligned.
+8. After backend deploy finishes, confirm the Render service is healthy and copy its `onrender.com` URL into the `VITE_API_URL` GitHub secret.
+9. After frontend deploy finishes, copy the Vercel URL into the Render `CORS_ORIGINS` environment variable.
+10. Re-run `Backend Deploy` so backend CORS allows the final frontend URL.
 
 ## Smoke tests after deployment
 
@@ -134,10 +147,11 @@ Frontend:
 
 1. Open the Vercel URL.
 2. Navigate through the app.
-3. Confirm browser devtools show API calls going to the deployed backend URL, not `localhost:8000`.
+3. Confirm browser devtools show API calls going to the deployed Render backend URL, not `localhost:8000`.
 
 ## Notes and caveats
 
-- Free tiers may sleep, cold start, or require periodic redeploys.
+- Render's free tier is appropriate for demos but can sleep/cold start and has limited CPU/memory.
+- If the backend exceeds Render Free memory, use the provider-selection fallback: Google Cloud Run.
 - The app currently exposes a browser API key by design. This is adequate for light demo deployments but not for a production betting application.
 - Some bookmaker scraping may be blocked or behave differently from hosted cloud IPs. The app has mock/fallback behavior, but production-grade scraping needs monitoring and compliance review.

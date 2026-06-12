@@ -8,16 +8,12 @@ Add repository secrets in GitHub at:
 
 ## Required secrets
 
-### Backend / Koyeb
+### Backend / Render Free Web Service
 
-`KOYEB_API_TOKEN`
-: Koyeb API token. Create it in Koyeb account settings.
+The backend deploy workflow no longer deploys to Koyeb. It validates the backend, builds the Docker image locally in CI, then triggers the Render service through Render's recommended deploy-hook flow for GitHub Actions. The deploy hook URL is a secret because anyone with it can trigger a deploy.
 
-`FRONTEND_URL`
-: The deployed frontend URL, for example `https://your-project.vercel.app`. The backend deployment workflow passes this value to the backend as `CORS_ORIGINS`.
-
-`BACKEND_API_KEYS`
-: Comma-separated API key list accepted by the backend, for example `prod-demo-key-change-me`. The frontend `VITE_API_KEY` must match one of these values.
+`RENDER_DEPLOY_HOOK_URL`
+: Render deploy hook URL for the backend Web Service. In the Render dashboard, open the backend service, go to `Settings`, copy the deploy hook URL, and store it exactly as this GitHub secret. Regenerate the hook in Render if it is exposed.
 
 ### Frontend / Vercel
 
@@ -31,10 +27,31 @@ Add repository secrets in GitHub at:
 : Vercel project ID.
 
 `VITE_API_URL`
-: The deployed backend URL, for example `https://your-backend.koyeb.app`.
+: The deployed Render backend URL, for example `https://world-cup-betting-backend.onrender.com`.
 
 `VITE_API_KEY`
-: Browser-exposed API key sent as `X-API-Key`. It must match one of the values in `BACKEND_API_KEYS`.
+: Browser-exposed API key sent as `X-API-Key`. It must match one of the values in Render `VALID_API_KEYS`.
+
+## Render backend service environment
+
+Set these in the Render dashboard for the backend Web Service, not in the GitHub workflow:
+
+`DEV_MODE=false`
+: Runs the API in production mode.
+
+`ENABLE_CORS=true`
+: Enables CORS for the deployed frontend.
+
+`CORS_ORIGINS=<frontend URL>`
+: Use the deployed frontend URL, for example `https://your-project.vercel.app`.
+
+`VALID_API_KEYS=<comma-separated backend API keys>`
+: Comma-separated API key list accepted by the backend, for example `prod-demo-key-change-me`. The frontend `VITE_API_KEY` must match one of these values.
+
+`LOG_LEVEL=INFO`
+: Production log verbosity.
+
+Render provides `PORT` automatically. The backend Dockerfile reads `${PORT:-8000}`, so do not hard-code a different value in the workflow.
 
 ## Optional future backend secrets
 
@@ -54,13 +71,22 @@ Only add these if you enable real data sources or monitoring:
 
 ## Deployment order after merge
 
-1. Create Koyeb and Vercel projects/accounts.
-2. Add all required GitHub Actions secrets above.
-3. Run `Backend Deploy` and copy the Koyeb backend URL.
-4. Set or update `VITE_API_URL` with that backend URL.
-5. Run `Frontend Deploy` and copy the Vercel frontend URL.
-6. Set or update `FRONTEND_URL` with that frontend URL.
-7. Re-run `Backend Deploy` so backend CORS allows the final frontend URL.
+1. Create a Render Web Service for the backend from this GitHub repository:
+   - Runtime/language: Docker
+   - Root directory: `backend`
+   - Dockerfile path: `Dockerfile`
+   - Branch: `main`
+   - Instance type: Free
+   - Health check path: `/health`
+   - Auto-deploy: disable it if you want GitHub Actions to gate deploys after tests; otherwise Render may deploy before CI finishes.
+2. Add the Render backend environment variables listed above.
+3. Copy the Render deploy hook URL into the GitHub repository secret `RENDER_DEPLOY_HOOK_URL`.
+4. Create the Vercel frontend project and add the required Vercel/Vite GitHub secrets.
+5. Run `Backend Deploy` from the `main` branch, then copy the Render backend URL.
+6. Set or update `VITE_API_URL` with the Render backend URL.
+7. Run `Frontend Deploy` and copy the Vercel frontend URL.
+8. Set or update the Render `CORS_ORIGINS` environment variable with the Vercel frontend URL.
+9. Re-run `Backend Deploy` so backend CORS allows the final frontend URL.
 
 ## Security note
 
