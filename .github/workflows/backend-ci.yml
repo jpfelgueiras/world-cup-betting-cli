@@ -146,7 +146,9 @@ jobs:
       - name: Test Docker image health
         run: |
           docker run -d --name test-container -p 8000:8000 worldcup-backend:test
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
+          echo "Waiting 20 seconds for container to start..."
+          sleep 20
+          echo "Checking health endpoint..."
+          curl -v -f http://localhost:8000/health || (docker logs test-container && exit 1)
           docker stop test-container
           docker rm test-container
