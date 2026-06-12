@@ -1,6 +1,7 @@
+---
 name: Frontend Deploy
 
-on:
+'on':
   push:
     branches:
       - main
