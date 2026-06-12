@@ -59,7 +59,7 @@ def validate_required_env_vars() -> List[str]:
     Returns:
         List of missing required environment variable names
     """
-    missing = []
+    missing: list[str] = []
 
     # Check API keys that should be set in production
     if not os.getenv("FBREF_API_KEY") and not os.getenv("FOOTBALL_DATA_API_KEY"):
