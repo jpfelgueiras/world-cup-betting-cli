@@ -1,6 +1,8 @@
 # Deployment secrets
 
-This file lists the GitHub Actions secrets needed by the free-hosting deployment workflows in this repository.
+This file lists the GitHub Actions secrets needed by the current free-hosting deployment workflows in this repository. For the full account setup, Render service creation, first deployment order, and troubleshooting guide, see `docs/free-hosting-deployment.md`.
+
+Koyeb deployment is obsolete for this repository. Do not add old Koyeb tokens, app names, or service IDs for the current workflow; `.github/workflows/backend-deploy.yml` uses Render's deploy hook instead.
 
 Add repository secrets in GitHub at:
 
