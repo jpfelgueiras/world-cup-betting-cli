@@ -59,7 +59,7 @@ def validate_required_env_vars() -> List[str]:
     Returns:
         List of missing required environment variable names
     """
-    missing = []
+    missing: list[str] = []
 
     # Check API keys that should be set in production
     if not os.getenv("FBREF_API_KEY") and not os.getenv("FOOTBALL_DATA_API_KEY"):
@@ -74,9 +74,7 @@ BETTING_SITES: Dict[str, Dict[str, Any]] = {
     "betano": {
         "name": "Betano.pt",
         "url": os.getenv("BETANO_URL", "https://www.betano.pt"),
-        "sports_url": os.getenv(
-            "BETANO_SPORTS_URL", "https://www.betano.pt/sport/"
-        ),
+        "sports_url": os.getenv("BETANO_SPORTS_URL", "https://www.betano.pt/sport/"),
         "enabled": get_env_bool("BETANO_ENABLED", True),
         "rate_limit_seconds": get_env_int("BETANO_RATE_LIMIT", 5),
     },
@@ -132,22 +130,14 @@ BETTING_SITES: Dict[str, Dict[str, Any]] = {
 
 # Default thresholds
 DEFAULT_MIN_EV: float = get_env_float("MIN_EV_THRESHOLD", 5.0)
-DEFAULT_MIN_CONFIDENCE: float = get_env_float(
-    "MIN_CONFIDENCE_THRESHOLD", 60.0
-)
-DEFAULT_ODDS_DISCREPANCY: float = get_env_float(
-    "ODDS_DISCREPANCY_THRESHOLD", 10.0
-)
+DEFAULT_MIN_CONFIDENCE: float = get_env_float("MIN_CONFIDENCE_THRESHOLD", 60.0)
+DEFAULT_ODDS_DISCREPANCY: float = get_env_float("ODDS_DISCREPANCY_THRESHOLD", 10.0)
 
 # Data sources
 DATA_SOURCES: Dict[str, str] = {
     "fbref": os.getenv("FBREF_URL", "https://fbref.com/"),
-    "football_data": os.getenv(
-        "FOOTBALL_DATA_URL", "https://www.football-data.org/"
-    ),
-    "api_football": os.getenv(
-        "API_FOOTBALL_URL", "https://api-football.com/"
-    ),
+    "football_data": os.getenv("FOOTBALL_DATA_URL", "https://www.football-data.org/"),
+    "api_football": os.getenv("API_FOOTBALL_URL", "https://api-football.com/"),
 }
 
 # API keys (should be set via environment variables in production)

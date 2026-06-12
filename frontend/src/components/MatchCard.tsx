@@ -1,4 +1,4 @@
-import { ValueBet, ScanMatchResult } from '@types/index'
+import { ScanMatchResult } from '@/types/index'
 import { TrendingUp, AlertCircle } from 'lucide-react'
 
 interface MatchCardProps {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@services/api'
 import { ValueBetTable } from '@components/ValueBetTable'
-import type { MatchAnalysisResponse } from '@types/index'
+import type { MatchAnalysisResponse } from '@/types/index'
 import { Search, TrendingUp } from 'lucide-react'
 
 export function BettingPage() {

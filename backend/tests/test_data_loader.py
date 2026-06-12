@@ -300,12 +300,16 @@ class TestPredictionLogging:
         mock_prediction.draw_prob = 0.30
         mock_prediction.away_win_prob = 0.25
 
-        loader.log_prediction("Portugal", "Brazil", mock_prediction, actual_result="home")
+        loader.log_prediction(
+            "Portugal", "Brazil", mock_prediction, actual_result="home"
+        )
 
         # Verify result was logged
         conn = sqlite3.connect(loader.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT actual_result FROM predictions_log WHERE home_team LIKE '%Portugal%'")
+        cursor.execute(
+            "SELECT actual_result FROM predictions_log WHERE home_team LIKE '%Portugal%'"
+        )
         row = cursor.fetchone()
         conn.close()
 
@@ -343,8 +347,14 @@ class TestPredictionAccuracy:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
-                "Team A", "Team B", datetime.now().isoformat(),
-                0.60, 0.25, 0.15, "home", datetime.now().isoformat()
+                "Team A",
+                "Team B",
+                datetime.now().isoformat(),
+                0.60,
+                0.25,
+                0.15,
+                "home",
+                datetime.now().isoformat(),
             ),
         )
 
@@ -356,8 +366,14 @@ class TestPredictionAccuracy:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
-                "Team C", "Team D", datetime.now().isoformat(),
-                0.60, 0.25, 0.15, "away", datetime.now().isoformat()
+                "Team C",
+                "Team D",
+                datetime.now().isoformat(),
+                0.60,
+                0.25,
+                0.15,
+                "away",
+                datetime.now().isoformat(),
             ),
         )
 

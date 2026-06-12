@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Trophy, Calendar, Bet, Users, Settings, Info } from 'lucide-react'
+import { Trophy, Calendar, Target, Users, Settings, Info } from 'lucide-react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -10,7 +10,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 const navigation = [
   { name: 'Home', href: '/', icon: Trophy },
   { name: 'Matches', href: '/matches', icon: Calendar },
-  { name: 'Betting', href: '/betting', icon: Bet },
+  { name: 'Betting', href: '/betting', icon: Target },
   { name: 'Leagues', href: '/leagues', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'About', href: '/about', icon: Info },

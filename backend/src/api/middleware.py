@@ -71,14 +71,20 @@ async def prometheus_middleware(request: Request, call_next: Callable) -> Respon
 
         # Track errors (4xx and 5xx)
         if response.status_code >= 400:
-            error_type = "client_error" if response.status_code < 500 else "server_error"
-            ERROR_COUNT.labels(method=method, endpoint=endpoint, error_type=error_type).inc()
+            error_type = (
+                "client_error" if response.status_code < 500 else "server_error"
+            )
+            ERROR_COUNT.labels(
+                method=method, endpoint=endpoint, error_type=error_type
+            ).inc()
 
         return response
 
     except Exception:
         # Record error
-        ERROR_COUNT.labels(method=method, endpoint=endpoint, error_type="exception").inc()
+        ERROR_COUNT.labels(
+            method=method, endpoint=endpoint, error_type="exception"
+        ).inc()
         raise
 
     finally:
@@ -95,8 +101,8 @@ async def metrics_endpoint(request: Request) -> Response:
     Returns metrics in Prometheus text exposition format.
     Should be scraped by Prometheus server.
     """
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
     from fastapi.responses import Response
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     metrics = generate_latest()
     return Response(content=metrics, media_type=CONTENT_TYPE_LATEST)

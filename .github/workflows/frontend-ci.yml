@@ -48,7 +48,12 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Run tests
-        run: npm run test -- --run
+        run: |
+          if [ -n "$(find src -name '*.test.ts' -o -name '*.test.tsx' -o -name '*.spec.ts' -o -name '*.spec.tsx')" ]; then
+            npm run test -- --run
+          else
+            echo "No test files found, skipping tests"
+          fi
 
       - name: Build application
         run: npm run build

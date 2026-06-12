@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@services/api'
-import type { BookmakerStatus } from '@types/index'
+import type { BookmakerStatus } from '@/types/index'
 import { ExternalLink, Shield } from 'lucide-react'
 
 export function LeaguesPage() {

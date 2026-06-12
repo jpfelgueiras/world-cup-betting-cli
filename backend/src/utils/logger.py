@@ -37,6 +37,7 @@ def setup_logger(
         return logger
 
     # Create formatter
+    formatter: logging.Formatter
     if structured:
         formatter = StructuredFormatter()
     else:

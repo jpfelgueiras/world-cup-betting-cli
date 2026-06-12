@@ -56,7 +56,7 @@ COPY --from=builder --chown=appuser:appgroup /build/setup.py .
 COPY --from=builder --chown=appuser:appgroup /build/README.md .
 
 # Copy configuration files
-COPY --chown=appuser:appgroup .env.example .env.example
+COPY --chown=appuser:appgroup .env.example .env
 
 # Create necessary directories
 RUN mkdir -p /app/data/cache /app/logs && \

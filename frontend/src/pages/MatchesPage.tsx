@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@services/api'
 import { MatchCard } from '@components/MatchCard'
 import { Search } from 'lucide-react'
-import type { ScanResponse } from '@types/index'
+import type { ScanResponse } from '@/types/index'
 
 export function MatchesPage() {
   const [searchTerm, setSearchTerm] = useState('')
