@@ -1,3 +1,4 @@
+import type { ValueBet } from '@/types/index'
 import { CheckCircle } from 'lucide-react'
 
 interface ValueBetTableProps {

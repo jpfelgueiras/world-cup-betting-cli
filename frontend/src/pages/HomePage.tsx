@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@services/api'
 import { TrendingUp, Search, Activity } from 'lucide-react'
-import type { ScanResponse } from '@types/index'
+import type { ScanResponse } from '@/types/index'
 
 export function HomePage() {
   const [daysAhead, setDaysAhead] = useState(7)

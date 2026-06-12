@@ -26,7 +26,7 @@
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
       "@services/*": ["src/services/*"],
-      "@types/*": ["src/types/*"],
+      "@/types/*": ["src/types/*"],
       "@pages/*": ["src/pages/*"],
       "@utils/*": ["src/utils/*"]
     }
