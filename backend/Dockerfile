@@ -4,7 +4,7 @@
 # =============================================================================
 # Stage 1: Builder
 # =============================================================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -e .
 # =============================================================================
 # Stage 2: Production
 # =============================================================================
-FROM python:3.11-slim as production
+FROM python:3.11-slim AS production
 
 LABEL maintainer="World Cup Betting Insights Team"
 LABEL description="AI-powered betting insights API for World Cup matches"
@@ -85,7 +85,7 @@ CMD ["python", "-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port"
 # =============================================================================
 # Stage 3: Development (optional, use with docker-compose)
 # =============================================================================
-FROM production as development
+FROM production AS development
 
 USER root
 
