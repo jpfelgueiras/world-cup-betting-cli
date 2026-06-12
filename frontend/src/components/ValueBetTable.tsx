@@ -1,5 +1,4 @@
-import { ValueBet } from '@types/index'
-import { TrendingUp, CheckCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 
 interface ValueBetTableProps {
   bets: ValueBet[]

@@ -7,7 +7,7 @@ export function SettingsPage() {
   const [minEv, setMinEv] = useState(5.0)
   const [minConfidence, setMinConfidence] = useState(60.0)
 
-  const { data: config, isLoading } = useQuery({
+  useQuery({
     queryKey: ['config'],
     queryFn: () => api.getConfig(),
   })

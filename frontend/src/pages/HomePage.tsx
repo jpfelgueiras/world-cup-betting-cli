@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@services/api'
-import { ValueBetTable } from '@components/ValueBetTable'
 import { TrendingUp, Search, Activity } from 'lucide-react'
 import type { ScanResponse } from '@types/index'
 
