@@ -1,4 +1,4 @@
-import { ExternalLink, Github, Shield, TrendingUp, Cpu } from 'lucide-react'
+import { ExternalLink, GitBranch, Shield, TrendingUp, Cpu } from 'lucide-react'
 
 export function AboutPage() {
   return (
@@ -125,7 +125,7 @@ export function AboutPage() {
             rel="noopener noreferrer"
             className="flex items-center text-primary-500 hover:text-primary-400"
           >
-            <Github className="h-4 w-4 mr-2" />
+            <GitBranch className="h-4 w-4 mr-2" />
             GitHub Repository
           </a>
           <a
