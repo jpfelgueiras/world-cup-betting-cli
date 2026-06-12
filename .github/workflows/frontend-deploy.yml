@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'frontend/**'
+      - '.github/workflows/frontend-deploy.yml'
+  workflow_dispatch:
 
 concurrency:
   group: deploy-frontend-${{ github.ref }}
@@ -15,12 +17,18 @@ permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy
+  deploy-vercel:
+    name: Deploy frontend to Vercel
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./frontend
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
     steps:
       - name: Check out repository
@@ -29,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -39,25 +47,14 @@ jobs:
       - name: Run linter
         run: npm run lint
 
-      - name: Type check
-        run: npx tsc --noEmit
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
 
-      - name: Build application
-        run: npm run build
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: frontend-build
-          path: frontend/dist/
-          retention-days: 30
+      - name: Build Vercel output
+        run: vercel build --prod --token=$VERCEL_TOKEN
 
-      - name: Deploy to production
-        run: |
-          echo "Deployment would happen here"
-          echo "Configure your deployment strategy (e.g., Vercel, Netlify, S3+CloudFront, etc.)"
-        # Add your actual deployment steps here
-        # Examples:
-        # - Vercel: vercel --prod
-        # - Netlify: netlify deploy --prod
-        # - AWS S3: aws s3 sync dist/ s3://your-bucket/
+      - name: Deploy Vercel output
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
