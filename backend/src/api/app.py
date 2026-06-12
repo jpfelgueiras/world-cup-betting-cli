@@ -15,9 +15,9 @@ from typing import Dict, List
 from fastapi import FastAPI, Request, Security, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, JSONResponse
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import JSONResponse, Response
 from fastapi.security import APIKeyHeader
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from ..config import (
     CORS_ORIGINS,

@@ -101,8 +101,8 @@ async def metrics_endpoint(request: Request) -> Response:
     Returns metrics in Prometheus text exposition format.
     Should be scraped by Prometheus server.
     """
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
     from fastapi.responses import Response
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     metrics = generate_latest()
     return Response(content=metrics, media_type=CONTENT_TYPE_LATEST)
