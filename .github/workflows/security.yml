@@ -88,6 +88,11 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "SNYK_TOKEN is not configured; skipping Snyk scan."
+            echo "Add the repository secret SNYK_TOKEN to make high-severity Snyk findings block this job."
+            exit 0
+          fi
           npm install -g snyk
           snyk test --severity-threshold=high
 
