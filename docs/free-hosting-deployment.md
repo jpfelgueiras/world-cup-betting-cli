@@ -34,6 +34,8 @@ cd ../frontend && npm ci && npm run lint && npm run build
 
 Render is the selected free backend provider because it can build and run this backend from the existing Dockerfile, provides a Free Web Service tier suitable for a demo API, supports `/health` checks, and exposes deploy hooks that fit the GitHub Actions workflow.
 
+For a dedicated Render/GitHub Actions operator checklist, see `docs/render-github-secrets.md`.
+
 ### 1. Create the Render backend service
 
 1. Sign in to Render.
