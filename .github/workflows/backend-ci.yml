@@ -139,6 +139,7 @@ jobs:
           context: ./backend
           file: backend/Dockerfile
           push: false
+          load: true
           tags: worldcup-backend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
