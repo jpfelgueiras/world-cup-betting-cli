@@ -1,0 +1,43 @@
+{
+  "events": [
+    {
+      "id": "ESC-1001",
+      "competition": "World Cup",
+      "league": "International",
+      "starts_at": "2026-06-15T20:00:00+00:00",
+      "participants": {
+        "home": "Portugal",
+        "away": "Brazil"
+      },
+      "markets": [
+        {
+          "name": "Resultado Final",
+          "type": "1X2",
+          "selections": [
+            {"name": "1", "label": "Portugal", "odds": "2.35"},
+            {"name": "X", "label": "Empate", "odds": "3.20"},
+            {"name": "2", "label": "Brazil", "odds": "2.95"}
+          ]
+        }
+      ],
+      "url": "/pt/betting/event/ESC-1001"
+    },
+    {
+      "id": "ESC-1002",
+      "competition": "Liga Portugal",
+      "starts_at": "2026-06-16T18:30:00+00:00",
+      "participants": {
+        "home": "Sporting",
+        "away": "Braga"
+      },
+      "markets": {
+        "1x2": {
+          "home": 1.80,
+          "draw": 3.60,
+          "away": 4.20
+        }
+      },
+      "url": "/pt/betting/event/ESC-1002"
+    }
+  ]
+}

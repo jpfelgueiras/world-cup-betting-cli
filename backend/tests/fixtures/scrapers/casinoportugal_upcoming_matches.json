@@ -1,0 +1,84 @@
+{
+  "sports": [
+    {"id": 69, "name": "Futebol", "code": "soccer"}
+  ],
+  "categories": [
+    {"id": 678, "sportId": 69, "name": "Internacional", "code": "INT"}
+  ],
+  "tournaments": [
+    {"id": 10131, "categoryId": 678, "name": "Campeonato do Mundo FIFA"}
+  ],
+  "markets": [
+    {
+      "id": 1708,
+      "sportId": 69,
+      "name": "1x2",
+      "eventMarketName": "1x2",
+      "outcomes": [
+        {"id": 5158, "name": "Casa", "eventMarketOutcomeName": "{{E.C1.NAME}}"},
+        {"id": 5168, "name": "Empate", "eventMarketOutcomeName": "Empate"},
+        {"id": 5240, "name": "Fora", "eventMarketOutcomeName": "{{E.C2.NAME}}"}
+      ]
+    },
+    {
+      "id": 1682,
+      "sportId": 69,
+      "name": "Total de golos",
+      "eventMarketName": "Total de golos",
+      "outcomes": [
+        {"id": 4090, "name": "Acima"},
+        {"id": 4890, "name": "Abaixo"}
+      ]
+    },
+    {
+      "id": 1411,
+      "sportId": 69,
+      "name": "As duas equipas marcam",
+      "eventMarketName": "As duas equipas marcam",
+      "outcomes": [
+        {"id": 3104, "name": "Sim", "info": "Yes"},
+        {"id": 2502, "name": "Não", "info": "No"}
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": 808583,
+      "type": 1,
+      "tournamentId": 10131,
+      "name": "Portugal vs. República Democrática do Congo",
+      "startsAt": "2026-06-17T17:00:00Z",
+      "competitors": [
+        {"ordinal": 1, "teamName": "Portugal"},
+        {"ordinal": 2, "teamName": "República Democrática do Congo"}
+      ],
+      "markets": [
+        {
+          "id": 3,
+          "marketId": 1708,
+          "outcomes": [
+            {"id": 1, "outcomeId": 5240, "odds": 94000, "status": 1},
+            {"id": 2, "outcomeId": 5158, "odds": 12500, "status": 1},
+            {"id": 3, "outcomeId": 5168, "odds": 52000, "status": 1}
+          ]
+        },
+        {
+          "id": 20,
+          "marketId": 1411,
+          "outcomes": [
+            {"id": 1, "outcomeId": 3104, "odds": 21200, "status": 1},
+            {"id": 2, "outcomeId": 2502, "odds": 15900, "status": 1}
+          ]
+        },
+        {
+          "id": 45,
+          "marketId": 1682,
+          "outcomes": [
+            {"id": 2, "outcomeId": 4890, "odds": 20700, "specifiers": [{"id": 2, "value": "2.5"}], "status": 1},
+            {"id": 6, "outcomeId": 4090, "odds": 16200, "specifiers": [{"id": 2, "value": "2.5"}], "status": 1}
+          ]
+        }
+      ]
+    }
+  ]
+}

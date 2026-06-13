@@ -24,8 +24,12 @@ class SiteType(str, Enum):
 
     BETANO = "betano"
     BETCLIC = "betclic"
+    BWIN = "bwin"
+    LEBULL = "lebull"
     ESC = "esc"
     SOLVERDE = "solverde"
+    GOLDENPARK = "goldenpark"
+    CASINOPORTUGAL = "casinoportugal"
     PLACARD = "placard"
     NOSSAAPOSTA = "nossaaposta"
     ALL = "all"
@@ -346,7 +350,15 @@ class LibraryConfig(BaseModel):
     min_ev: float = 5.0
     min_confidence: float = 60.0
     enabled_sites: List[str] = Field(
-        default_factory=lambda: ["betano", "betclic", "solverde"]
+        default_factory=lambda: [
+            "betano",
+            "betclic",
+            "bwin",
+            "solverde",
+            "goldenpark",
+            "casinoportugal",
+            "placard",
+        ]
     )
     cache_enabled: bool = True
     cache_ttl_hours: int = 1

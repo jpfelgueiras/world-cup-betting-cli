@@ -96,6 +96,14 @@ class TestAPIModels:
         assert request.min_confidence == 70.0
         assert request.site == SiteType.BETCLIC
 
+    def test_site_type_includes_lebull(self):
+        """Test API enum accepts LeBull site key."""
+        assert SiteType.LEBULL.value == "lebull"
+        request = MatchPredictionRequest(
+            home_team="Portugal", away_team="Brazil", site=SiteType.LEBULL
+        )
+        assert request.site == SiteType.LEBULL
+
     def test_scan_request_days_ahead_validation(self):
         """Test days_ahead must be between 1 and 30"""
         # Valid
@@ -426,6 +434,15 @@ class TestBookmakersEndpoint:
             assert "enabled" in bookmaker
             assert "rate_limit_seconds" in bookmaker
 
+    def test_list_bookmakers_includes_lebull(self, client):
+        """Test bookmakers endpoint exposes LeBull metadata."""
+        response = client.get("/api/v1/bookmakers")
+        data = response.json()
+
+        lebull = next((item for item in data if item["site_key"] == "lebull"), None)
+        assert lebull is not None
+        assert lebull["site_name"] == "LeBull.pt"
+
 
 class TestConfigEndpoint:
     """Tests for /api/v1/config endpoints"""
@@ -449,6 +466,7 @@ class TestConfigEndpoint:
         assert "min_confidence" in data
         assert "enabled_sites" in data
         assert "cache_enabled" in data
+        assert "lebull" in data["enabled_sites"]
 
     def test_put_config_updates_config(self, client):
         """Test updating config via PUT"""

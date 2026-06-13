@@ -1,0 +1,56 @@
+{
+  "events": [
+    {
+      "id": "GOLDENPARK-4001",
+      "competition": "World Cup",
+      "league": "International",
+      "starts_at": "2026-06-15T20:00:00+00:00",
+      "url": "/pt/apostas-desportivas/futebol/portugal-brasil/GOLDENPARK-4001",
+      "contestants": {
+        "home": "Portugal",
+        "away": "Brazil"
+      },
+      "markets": {
+        "1x2": {
+          "home": 2.18,
+          "draw": 3.35,
+          "away": 3.10
+        },
+        "ou25": {
+          "over": 1.82,
+          "under": 1.92
+        },
+        "btts": {
+          "yes": 1.74,
+          "no": 2.02
+        }
+      }
+    },
+    {
+      "id": "GOLDENPARK-4002",
+      "competition": "World Cup",
+      "league": "International",
+      "starts_at": "2026-06-16T18:00:00+00:00",
+      "url": "/pt/apostas-desportivas/futebol/spain-germany/GOLDENPARK-4002",
+      "contestants": {
+        "home": "Spain",
+        "away": "Germany"
+      },
+      "markets": {
+        "1x2": {
+          "home": 2.45,
+          "draw": 3.20,
+          "away": 2.85
+        },
+        "ou25": {
+          "over": 1.90,
+          "under": 1.86
+        },
+        "btts": {
+          "yes": 1.68,
+          "no": 2.08
+        }
+      }
+    }
+  ]
+}

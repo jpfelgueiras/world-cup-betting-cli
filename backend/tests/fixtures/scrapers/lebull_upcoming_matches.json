@@ -1,0 +1,55 @@
+{
+  "events": [
+    {
+      "eventId": "LEBULL-5001",
+      "competition": {"name": "World Cup"},
+      "sport": "football",
+      "startTime": "2026-06-15T20:00:00Z",
+      "participants": [
+        {"name": "Portugal", "type": "HOME"},
+        {"name": "Brazil", "type": "AWAY"}
+      ],
+      "markets": [
+        {
+          "name": "Resultado Final",
+          "type": "1X2",
+          "selections": [
+            {"name": "Portugal", "odds": "2.24"},
+            {"name": "Empate", "odds": "3.35"},
+            {"name": "Brazil", "odds": "3.00"}
+          ]
+        },
+        {
+          "name": "Total Golos 2.5",
+          "type": "OU25",
+          "selections": [
+            {"name": "Mais de 2.5", "odds": 1.92},
+            {"name": "Menos de 2.5", "odds": 1.84}
+          ]
+        },
+        {
+          "name": "Ambas Equipas Marcam",
+          "type": "BTTS",
+          "selections": [
+            {"name": "Sim", "odds": 1.77},
+            {"name": "Não", "odds": 1.98}
+          ]
+        }
+      ],
+      "path": "/desporto/futebol/portugal-brasil/LEBULL-5001"
+    },
+    {
+      "eventId": "LEBULL-5002",
+      "league": "World Cup",
+      "kickoff": "2026-06-16T18:00:00+00:00",
+      "homeTeam": "Spain",
+      "awayTeam": "Germany",
+      "odds": {
+        "1X2": {"home": 2.40, "draw": 3.16, "away": 2.95},
+        "OU25": {"over": 1.94, "under": 1.82},
+        "BTTS": {"yes": 1.72, "no": 2.07}
+      },
+      "url": "https://www.lebull.pt/desporto/futebol/spain-germany/LEBULL-5002"
+    }
+  ]
+}
