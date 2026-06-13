@@ -36,7 +36,12 @@ logger = logging.getLogger(__name__)
 # Security configuration
 API_KEY_HEADER_NAME = os.getenv("API_KEY_HEADER", "X-API-Key")
 api_key_header = APIKeyHeader(name=API_KEY_HEADER_NAME, auto_error=False)
-PLACEHOLDER_API_KEYS = {"dev-key-12345", "your-production-key-here", "changeme", "change-me"}
+PLACEHOLDER_API_KEYS = {
+    "dev-key-12345",
+    "your-production-key-here",
+    "changeme",
+    "change-me",
+}
 PUBLIC_PATHS = {"/", "/health", "/api/v1/health"}
 MAX_RATE_LIMIT_KEYS = int(os.getenv("RATE_LIMIT_MAX_KEYS", "10000"))
 
@@ -55,9 +60,7 @@ def is_dev_mode() -> bool:
 def get_valid_api_keys() -> List[str]:
     """Load API keys from the environment without falling back to defaults."""
     return [
-        key.strip()
-        for key in os.getenv("VALID_API_KEYS", "").split(",")
-        if key.strip()
+        key.strip() for key in os.getenv("VALID_API_KEYS", "").split(",") if key.strip()
     ]
 
 
@@ -148,7 +151,9 @@ def _prune_rate_limit_storage(current_time: float, window: int) -> None:
     """Drop expired and excess client entries to bound memory use."""
     stale_keys = []
     for client_ip, timestamps in _rate_limit_storage.items():
-        fresh = [timestamp for timestamp in timestamps if current_time - timestamp < window]
+        fresh = [
+            timestamp for timestamp in timestamps if current_time - timestamp < window
+        ]
         if fresh:
             _rate_limit_storage[client_ip] = fresh
         else:
