@@ -9,9 +9,14 @@ from datetime import datetime
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.app import _rate_limit_storage, app, create_app  # noqa: F401
-from src.api.app import get_client_ip, validate_auth_configuration
-from src.api.app import validate_rate_limit_configuration
+from src.api.app import (  # noqa: F401
+    _rate_limit_storage,
+    app,
+    create_app,
+    get_client_ip,
+    validate_auth_configuration,
+    validate_rate_limit_configuration,
+)
 from src.api.models import ConfidenceLevels  # noqa: F401
 from src.api.models import HealthResponse  # noqa: F401
 from src.api.models import MatchAnalysisResponse  # noqa: F401
