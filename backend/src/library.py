@@ -29,6 +29,7 @@ from .predictors.team_stats import TeamData
 from .scrapers.base_scraper import OddsData
 from .scrapers.betano_scraper import BetanoScraper
 from .scrapers.betclic_scraper import BetclicScraper
+from .scrapers.placard_scraper import PlacardScraper
 from .scrapers.solverde_scraper import SolverdeScraper
 from .utils.ev_calculator import (
     BetRecommendation,
@@ -223,6 +224,8 @@ class BettingInsights:
             self.scrapers.append(BetanoScraper())
         if "betclic" in enabled_sites:
             self.scrapers.append(BetclicScraper())
+        if "placard" in enabled_sites:
+            self.scrapers.append(PlacardScraper())
         if "solverde" in enabled_sites:
             self.scrapers.append(SolverdeScraper())
 
@@ -430,6 +433,8 @@ class BettingInsights:
                 self.scrapers.append(BetanoScraper())
             if "betclic" in enabled_sites:
                 self.scrapers.append(BetclicScraper())
+            if "placard" in enabled_sites:
+                self.scrapers.append(PlacardScraper())
             if "solverde" in enabled_sites:
                 self.scrapers.append(SolverdeScraper())
 

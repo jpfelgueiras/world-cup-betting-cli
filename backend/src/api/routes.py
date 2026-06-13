@@ -51,6 +51,7 @@ def get_scrapers(site: str = "all"):
     """Get list of scrapers based on site parameter"""
     from ..scrapers.betano_scraper import BetanoScraper
     from ..scrapers.betclic_scraper import BetclicScraper
+    from ..scrapers.placard_scraper import PlacardScraper
     from ..scrapers.solverde_scraper import SolverdeScraper
 
     scrapers: List[Any] = []
@@ -58,6 +59,8 @@ def get_scrapers(site: str = "all"):
         scrapers.append(BetanoScraper())
     if site == "all" or site == "betclic":
         scrapers.append(BetclicScraper())
+    if site == "all" or site == "placard":
+        scrapers.append(PlacardScraper())
     if site == "all" or site == "solverde":
         scrapers.append(SolverdeScraper())
 
@@ -98,7 +101,7 @@ async def health_check():
     from src import __version__
 
     bookmaker_statuses = []
-    for site_key in ["betano", "betclic", "solverde"]:
+    for site_key in ["betano", "betclic", "placard", "solverde"]:
         status = BookmakerStatus(
             site_key=site_key,
             site_name=site_key.capitalize() + ".pt",

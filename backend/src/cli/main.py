@@ -21,6 +21,7 @@ from src.predictors.team_stats import TeamData
 from src.scrapers.base_scraper import BaseScraper, OddsData
 from src.scrapers.betano_scraper import BetanoScraper
 from src.scrapers.betclic_scraper import BetclicScraper
+from src.scrapers.placard_scraper import PlacardScraper
 from src.scrapers.solverde_scraper import SolverdeScraper
 from src.utils.ev_calculator import (
     BetRecommendation,
@@ -51,7 +52,7 @@ def cli():
 @click.option(
     "--site",
     "-s",
-    type=click.Choice(["betano", "betclic", "solverde", "all"]),
+    type=click.Choice(["betano", "betclic", "placard", "solverde", "all"]),
     default="all",
     help="Specific betting site to analyze",
 )
@@ -166,7 +167,7 @@ def predict(
 @click.option(
     "--site",
     "-s",
-    type=click.Choice(["betano", "betclic", "solverde", "all"]),
+    type=click.Choice(["betano", "betclic", "placard", "solverde", "all"]),
     default="all",
     help="Specific betting site",
 )
@@ -346,6 +347,8 @@ def get_scrapers(site: str) -> List[BaseScraper]:
         scrapers.append(cast(BaseScraper, BetanoScraper()))
     if site == "all" or site == "betclic":
         scrapers.append(cast(BaseScraper, BetclicScraper()))
+    if site == "all" or site == "placard":
+        scrapers.append(cast(BaseScraper, PlacardScraper()))
     if site == "all" or site == "solverde":
         scrapers.append(cast(BaseScraper, SolverdeScraper()))
 

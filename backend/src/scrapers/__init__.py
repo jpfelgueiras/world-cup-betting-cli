@@ -3,6 +3,7 @@
 from .base_scraper import BaseScraper, ScraperError
 from .betano_scraper import BetanoScraper
 from .betclic_scraper import BetclicScraper
+from .placard_scraper import PlacardScraper
 from .solverde_scraper import SolverdeScraper
 
 __all__ = [
@@ -10,5 +11,6 @@ __all__ = [
     "ScraperError",
     "BetanoScraper",
     "BetclicScraper",
+    "PlacardScraper",
     "SolverdeScraper",
 ]
