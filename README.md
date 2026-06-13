@@ -6,7 +6,7 @@ A full-stack application for analyzing football betting markets by comparing mod
 
 This project is split into two separate repositories:
 
-```
+```text
 world-cup-betting-cli/
 ├── backend/          # FastAPI REST API (Python)
 └── frontend/         # React + Vite + TypeScript UI
@@ -71,7 +71,8 @@ Access the UI at `http://localhost:5173` and the API at `http://localhost:8000`.
 - [Frontend README](frontend/README.md) - Frontend UI documentation
 - [Free hosting deployment](docs/free-hosting-deployment.md) - Render/Vercel/Netlify deployment guide
 - [Deployment secrets](docs/deployment-secrets.md) - GitHub Actions secrets required for deployment
-- [Vercel secrets for GitHub deployments](docs/vercel-github-secrets.md) - Step-by-step Vercel/GitHub Actions secret setup
+- [Render secrets for GitHub backend deployments](docs/render-github-secrets.md) - Step-by-step Render/GitHub Actions backend setup
+- [Vercel secrets for GitHub deployments](docs/vercel-github-secrets.md) - Step-by-step Vercel/GitHub Actions frontend setup
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture overview
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 
@@ -87,7 +88,7 @@ This software is for analysis only:
 - Only use licensed operators
 - Never bet more than you can afford to lose
 
-If gambling is becoming a problem, seek help through the Portuguese regulator:  
+If gambling is becoming a problem, seek help through the Portuguese regulator:
 <https://www.srij.turismodeportugal.pt/>
 
 ---
