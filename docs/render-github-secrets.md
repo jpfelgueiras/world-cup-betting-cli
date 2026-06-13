@@ -164,12 +164,10 @@ The deploy hook step intentionally runs only on `main`. Manual runs or branch ru
    curl --fail https://your-backend.onrender.com/api/v1/health
    ```
 
-9. Test an authenticated API endpoint by sending the `X-API-Key` header with one of the values configured in Render `VALID_API_KEYS`. Keep the real key out of shell history if possible; for example, read it from a local-only environment variable and replace the URL with the deployed backend:
+9. Test an authenticated API endpoint by sending the `X-API-Key` header with one of the values configured in Render `VALID_API_KEYS`. Keep the real key out of documentation and shell history. For example, replace this URL with the deployed backend and add the API-key header from your local-only secret store:
 
    ```bash
-   RENDER_API_KEY='<configured-render-api-key>'
-   curl --fail --header "X-API-Key: ${RENDER_API_KEY}" \
-     https://your-backend.onrender.com/api/v1/value-bets
+   curl --fail https://your-backend.onrender.com/api/v1/value-bets
    ```
 
 10. Open the deployed frontend and confirm browser requests go to the Render backend URL, not `localhost:8000`.
