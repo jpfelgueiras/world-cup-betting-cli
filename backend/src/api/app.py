@@ -8,11 +8,12 @@ Includes security features: rate limiting, API key auth, CORS, security headers.
 import logging
 import os
 import time
-from collections import defaultdict
+import uuid
+from collections import OrderedDict
 from contextlib import asynccontextmanager
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from fastapi import FastAPI, Request, Security, status
+from fastapi import FastAPI, HTTPException, Request, Security, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -35,16 +36,129 @@ logger = logging.getLogger(__name__)
 # Security configuration
 API_KEY_HEADER_NAME = os.getenv("API_KEY_HEADER", "X-API-Key")
 api_key_header = APIKeyHeader(name=API_KEY_HEADER_NAME, auto_error=False)
+PLACEHOLDER_API_KEYS = {"dev-key-12345", "your-production-key-here", "changeme", "change-me"}
+PUBLIC_PATHS = {"/", "/health", "/api/v1/health"}
+MAX_RATE_LIMIT_KEYS = int(os.getenv("RATE_LIMIT_MAX_KEYS", "10000"))
 
-# Valid API keys (in production, load from environment/secret manager)
-VALID_API_KEYS: List[str] = [
-    key.strip()
-    for key in os.getenv("VALID_API_KEYS", "dev-key-12345").split(",")
-    if key.strip()
-]
+# Bounded in-process rate limiting storage. For multi-worker deployments, configure
+# only trusted proxy headers and keep this as a per-process backstop; production
+# platforms should still enforce shared edge/app-level limits where available.
+_rate_limit_storage: Dict[str, List[float]] = OrderedDict()
+_redis_rate_limit_client = None
 
-# Rate limiting storage (in production, use Redis)
-_rate_limit_storage: Dict[str, List[float]] = defaultdict(list)
+
+def is_dev_mode() -> bool:
+    """Return whether local development mode is enabled."""
+    return os.getenv("DEV_MODE", "false").lower() == "true"
+
+
+def get_valid_api_keys() -> List[str]:
+    """Load API keys from the environment without falling back to defaults."""
+    return [
+        key.strip()
+        for key in os.getenv("VALID_API_KEYS", "").split(",")
+        if key.strip()
+    ]
+
+
+def validate_auth_configuration() -> None:
+    """Fail fast if a non-development deployment lacks real API keys."""
+    if is_dev_mode():
+        logger.warning("DEV_MODE=true: API key authentication is optional")
+        return
+
+    keys = get_valid_api_keys()
+    invalid_keys = [key for key in keys if key in PLACEHOLDER_API_KEYS]
+    if not keys or invalid_keys:
+        raise RuntimeError(
+            "VALID_API_KEYS must contain at least one non-placeholder key when "
+            "DEV_MODE is not true"
+        )
+
+
+def get_rate_limit_redis_url() -> str:
+    """Return the configured shared rate-limit store URL, if any."""
+    return os.getenv("RATE_LIMIT_REDIS_URL") or os.getenv("REDIS_URL", "")
+
+
+def validate_rate_limit_configuration() -> None:
+    """Require shared rate limiting for non-development deployments unless explicitly waived."""
+    if is_dev_mode():
+        return
+
+    if get_rate_limit_redis_url():
+        try:
+            client = get_redis_rate_limit_client()
+            if client is not None:
+                client.ping()
+        except Exception as exc:
+            raise RuntimeError(
+                "Configured Redis rate-limit store is unavailable"
+            ) from exc
+        return
+
+    if os.getenv("ALLOW_IN_MEMORY_RATE_LIMIT", "false").lower() == "true":
+        logger.warning(
+            "ALLOW_IN_MEMORY_RATE_LIMIT=true: using per-process rate limits; "
+            "configure RATE_LIMIT_REDIS_URL/REDIS_URL before production traffic"
+        )
+        return
+
+    raise RuntimeError(
+        "RATE_LIMIT_REDIS_URL or REDIS_URL is required when DEV_MODE is not true; "
+        "set ALLOW_IN_MEMORY_RATE_LIMIT=true only for non-production smoke tests"
+    )
+
+
+def get_redis_rate_limit_client():
+    """Create a Redis client lazily when a shared rate-limit store is configured."""
+    global _redis_rate_limit_client
+
+    redis_url = get_rate_limit_redis_url()
+    if not redis_url:
+        return None
+
+    if _redis_rate_limit_client is None:
+        import redis
+
+        _redis_rate_limit_client = redis.Redis.from_url(
+            redis_url, socket_connect_timeout=1, socket_timeout=1
+        )
+
+    return _redis_rate_limit_client
+
+
+def get_client_ip(request: Request) -> str:
+    """Resolve the rate-limit key, optionally honoring trusted proxy headers."""
+    if os.getenv("TRUST_PROXY_HEADERS", "false").lower() == "true":
+        forwarded_for = request.headers.get("x-forwarded-for")
+        if forwarded_for:
+            # X-Forwarded-For is a comma-separated chain; the first value is the
+            # original client according to trusted reverse proxies.
+            return forwarded_for.split(",", 1)[0].strip() or "unknown"
+
+        real_ip = request.headers.get("x-real-ip")
+        if real_ip:
+            return real_ip.strip() or "unknown"
+
+    return request.client.host if request.client else "unknown"
+
+
+def _prune_rate_limit_storage(current_time: float, window: int) -> None:
+    """Drop expired and excess client entries to bound memory use."""
+    stale_keys = []
+    for client_ip, timestamps in _rate_limit_storage.items():
+        fresh = [timestamp for timestamp in timestamps if current_time - timestamp < window]
+        if fresh:
+            _rate_limit_storage[client_ip] = fresh
+        else:
+            stale_keys.append(client_ip)
+
+    for client_ip in stale_keys:
+        _rate_limit_storage.pop(client_ip, None)
+
+    while len(_rate_limit_storage) > MAX_RATE_LIMIT_KEYS:
+        _rate_limit_storage.pop(next(iter(_rate_limit_storage)))
 
 
 def check_rate_limit(client_ip: str) -> bool:
@@ -61,24 +175,42 @@ def check_rate_limit(client_ip: str) -> bool:
     window = RATE_LIMIT_WINDOW_SECONDS
     max_requests = RATE_LIMIT_PER_IP
 
-    # Clean old entries
-    _rate_limit_storage[client_ip] = [
-        timestamp
-        for timestamp in _rate_limit_storage[client_ip]
-        if current_time - timestamp < window
-    ]
+    redis_client = get_redis_rate_limit_client()
+    if redis_client is not None:
+        try:
+            key = f"rate-limit:{client_ip}"
+            window_start = current_time - window
+            request_member = f"{current_time}:{uuid.uuid4().hex}"
+            pipe = redis_client.pipeline()
+            pipe.zremrangebyscore(key, 0, window_start)
+            pipe.zadd(key, {request_member: current_time})
+            pipe.zcard(key)
+            pipe.expire(key, window)
+            _, _, request_count, _ = pipe.execute()
+            return request_count <= max_requests
+        except Exception as exc:
+            logger.exception("Redis rate-limit check failed")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Rate-limit service unavailable",
+            ) from exc
+
+    _prune_rate_limit_storage(current_time, window)
+    timestamps = _rate_limit_storage.setdefault(client_ip, [])
 
     # Check limit
-    if len(_rate_limit_storage[client_ip]) >= max_requests:
+    if len(timestamps) >= max_requests:
         return False
 
     # Record this request
-    _rate_limit_storage[client_ip].append(current_time)
+    timestamps.append(current_time)
+    if isinstance(_rate_limit_storage, OrderedDict):
+        _rate_limit_storage.move_to_end(client_ip)
     return True
 
 
 async def verify_api_key(
-    api_key: str = Security(api_key_header),
+    api_key: Optional[str] = Security(api_key_header),
 ) -> str:
     """
     Verify API key for authentication.
@@ -86,23 +218,19 @@ async def verify_api_key(
     In development mode (DEV_MODE=true), API key is optional.
     In production, valid API key is required for all endpoints.
     """
-    dev_mode = os.getenv("DEV_MODE", "false").lower() == "true"
+    dev_mode = is_dev_mode()
 
     if dev_mode and not api_key:
         return "dev-mode"
 
     if not api_key:
-        from fastapi import HTTPException
-
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key required",
             headers={"WWW-Authenticate": "ApiKey"},
         )
 
-    if api_key not in VALID_API_KEYS:
-        from fastapi import HTTPException
-
+    if api_key not in get_valid_api_keys():
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
@@ -122,7 +250,11 @@ async def lifespan(app: FastAPI):
         f"🔒 Rate limiting: {RATE_LIMIT_PER_IP} req/{RATE_LIMIT_WINDOW_SECONDS}s"
     )
     logger.info(f"🔒 CORS enabled: {ENABLE_CORS}")
-    logger.info(f"🔒 API Key auth: {'enabled' if VALID_API_KEYS else 'disabled'}")
+    validate_auth_configuration()
+    validate_rate_limit_configuration()
+    logger.info(
+        f"🔒 API Key auth: {'optional in dev mode' if is_dev_mode() else 'enabled'}"
+    )
     logger.info(f"📊 Metrics enabled: {ENABLE_METRICS}")
 
     try:
@@ -255,7 +387,7 @@ You must be 18+ to gamble in Portugal.
         )
 
         # Rate limit headers
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = get_client_ip(request)
         remaining = max(
             0, RATE_LIMIT_PER_IP - len(_rate_limit_storage.get(client_ip, []))
         )
@@ -263,6 +395,26 @@ You must be 18+ to gamble in Portugal.
         response.headers["X-RateLimit-Remaining"] = str(remaining)
 
         return response
+
+    # Add API authentication middleware
+    @app.middleware("http")
+    async def api_auth_middleware(request: Request, call_next):
+        """Require API-key authentication for protected API endpoints."""
+        path = request.url.path
+        protected_path = path.startswith("/api/v1/") or path == "/metrics"
+
+        if protected_path and path not in PUBLIC_PATHS:
+            api_key = request.headers.get(API_KEY_HEADER_NAME)
+            try:
+                await verify_api_key(api_key)
+            except HTTPException as exc:
+                return JSONResponse(
+                    status_code=exc.status_code,
+                    content={"detail": exc.detail},
+                    headers=exc.headers,
+                )
+
+        return await call_next(request)
 
     # Add rate limiting middleware
     @app.middleware("http")
@@ -272,9 +424,18 @@ You must be 18+ to gamble in Portugal.
         if request.url.path in ["/health", "/api/v1/health", "/", "/metrics"]:
             return await call_next(request)
 
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = get_client_ip(request)
 
-        if not check_rate_limit(client_ip):
+        try:
+            rate_limit_allowed = check_rate_limit(client_ip)
+        except HTTPException as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail},
+                headers=exc.headers,
+            )
+
+        if not rate_limit_allowed:
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={

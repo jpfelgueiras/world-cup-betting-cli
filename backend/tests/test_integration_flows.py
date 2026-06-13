@@ -141,6 +141,7 @@ def test_library_scan_upcoming_matches_aggregates_integration(monkeypatch):
 
 
 def test_api_predict_and_scan_endpoints_integration(monkeypatch):
+    monkeypatch.setenv("DEV_MODE", "true")
     client = TestClient(create_app())
 
     prediction = DummyPrediction()

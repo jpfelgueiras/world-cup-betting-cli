@@ -9,6 +9,7 @@ Provides REST endpoints for:
 - Library configuration
 """
 
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -32,6 +33,8 @@ from .models import (
     TeamProbabilities,
     ValueBet,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["betting-insights"])
 
@@ -162,7 +165,14 @@ async def predict_match(
                 )
                 if odds:
                     all_odds.append(odds)
-            except Exception:
+            except Exception as exc:
+                logger.warning(
+                    "Skipping unavailable odds scraper for %s vs %s: %s",
+                    request.home_team,
+                    request.away_team,
+                    exc,
+                    exc_info=True,
+                )
                 continue  # Skip unavailable scrapers
 
         if not all_odds:
@@ -234,10 +244,13 @@ async def predict_match(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "Prediction failed for %s vs %s", request.home_team, request.away_team
+        )
         raise HTTPException(
             status_code=500,
-            detail=f"Prediction failed: {str(e)}",
+            detail="Prediction failed due to an internal error",
             headers={"X-Error-Code": "PREDICTION_ERROR"},
         )
 
@@ -280,7 +293,13 @@ async def scan_matches(
                 if key not in all_matches:
                     all_matches[key] = {"match": match, "odds": []}
                 all_matches[key]["odds"].append(match)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "Skipping unavailable match scraper %s: %s",
+                scraper.__class__.__name__,
+                exc,
+                exc_info=True,
+            )
             continue  # Skip failed scrapers
 
     # Analyze each match
