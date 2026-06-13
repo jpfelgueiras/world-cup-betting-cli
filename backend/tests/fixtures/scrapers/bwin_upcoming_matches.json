@@ -1,0 +1,82 @@
+{
+  "widgets": [
+    {
+      "sport": "Football",
+      "region": "International",
+      "competition": {"id": "wc-2026", "name": "World Cup 2026"},
+      "events": [
+        {
+          "id": "BWIN-4001",
+          "name": "Portugal - Brazil",
+          "startDate": "2026-06-15T20:00:00Z",
+          "url": "/sports/eventos/portugal-brazil/BWIN-4001",
+          "participants": [
+            {"name": "Portugal", "type": "Home"},
+            {"name": "Brazil", "type": "Away"}
+          ],
+          "markets": [
+            {
+              "name": "Resultado do Jogo",
+              "templateCategory": "Match_Result",
+              "selections": [
+                {"name": "Portugal", "price": {"decimal": "2.28"}},
+                {"name": "Empate", "price": {"decimal": "3,25"}},
+                {"name": "Brazil", "price": {"decimal": 3.1}}
+              ]
+            },
+            {
+              "name": "Total de Golos 2.5",
+              "templateCategory": "Over_Under",
+              "selections": [
+                {"name": "Mais de 2.5", "price": {"decimal": "1.87"}},
+                {"name": "Menos de 2.5", "price": {"decimal": "1.93"}}
+              ]
+            },
+            {
+              "name": "Ambas Equipas Marcam",
+              "templateCategory": "Both_Teams_To_Score",
+              "selections": [
+                {"name": "Sim", "price": {"decimal": "1.72"}},
+                {"name": "Não", "price": {"decimal": "2.05"}}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "BWIN-4002",
+          "name": "Spain - Germany",
+          "startDate": "2026-06-16T18:00:00Z",
+          "url": "/sports/eventos/spain-germany/BWIN-4002",
+          "participants": [
+            {"name": "Spain", "role": "home"},
+            {"name": "Germany", "role": "away"}
+          ],
+          "markets": [
+            {
+              "name": "Resultado final",
+              "selections": [
+                {"name": "1", "odds": "2.15"},
+                {"name": "X", "odds": "3.40"},
+                {"name": "2", "odds": "3.20"}
+              ]
+            },
+            {
+              "name": "Total de Golos 2.5",
+              "selections": [
+                {"name": "Mais de 2.5", "odds": "1.91"},
+                {"name": "Menos de 2.5", "odds": "1.89"}
+              ]
+            },
+            {
+              "name": "Ambas Equipas Marcam",
+              "selections": [
+                {"name": "Sim", "odds": "1.80"},
+                {"name": "Não", "odds": "2.00"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

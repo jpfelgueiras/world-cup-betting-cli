@@ -60,10 +60,21 @@ class OddsData:
     # Metadata
     last_updated: datetime = None
     url: Optional[str] = None
+    market_name: Optional[str] = None
+    league: Optional[str] = None
+    competition: Optional[str] = None
+    status: Optional[str] = None
+    error: Optional[str] = None
+    source_url: Optional[str] = None
+    scrape_timestamp: Optional[datetime] = None
 
     def __post_init__(self):
         if self.last_updated is None:
             self.last_updated = datetime.now()
+        if self.scrape_timestamp is None:
+            self.scrape_timestamp = self.last_updated
+        if self.source_url is None:
+            self.source_url = self.url
 
     def has_1x2(self) -> bool:
         """Check if 1X2 odds are available"""
@@ -97,6 +108,15 @@ class OddsData:
                 self.last_updated.isoformat() if self.last_updated else None
             ),
             "url": self.url,
+            "market_name": self.market_name,
+            "league": self.league,
+            "competition": self.competition,
+            "status": self.status,
+            "error": self.error,
+            "source_url": self.source_url,
+            "scrape_timestamp": (
+                self.scrape_timestamp.isoformat() if self.scrape_timestamp else None
+            ),
         }
 
 

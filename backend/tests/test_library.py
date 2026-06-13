@@ -363,6 +363,13 @@ class TestBettingInsights:
         assert len(insights.scrapers) == 1
         assert insights.scrapers[0].site_key == "betano"
 
+    def test_init_with_lebull_site(self):
+        """Test initialization with LeBull enabled site."""
+        insights = BettingInsights(enabled_sites=["lebull"])
+
+        assert len(insights.scrapers) == 1
+        assert insights.scrapers[0].site_key == "lebull"
+
     def test_init_disables_cache(self):
         """Test initialization with cache disabled"""
         insights = BettingInsights(cache_enabled=False)
@@ -478,6 +485,15 @@ class TestBettingInsights:
             assert "enabled" in bookmaker
             assert "rate_limit_seconds" in bookmaker
 
+    def test_get_bookmakers_includes_lebull(self, insights):
+        """Test library exposes LeBull bookmaker metadata."""
+        bookmakers = insights.get_bookmakers()
+        lebull = next((item for item in bookmakers if item["key"] == "lebull"), None)
+
+        assert lebull is not None
+        assert lebull["name"] == "LeBull.pt"
+        assert lebull["url"] == "https://www.lebull.pt"
+
     def test_update_config_min_ev(self, insights):
         """Test updating min_ev configuration"""
         assert insights.min_ev == 5.0
@@ -500,6 +516,13 @@ class TestBettingInsights:
 
         assert len(insights.scrapers) == 1
         assert insights.scrapers[0].site_key == "betano"
+
+    def test_update_config_enabled_sites_supports_lebull(self, insights):
+        """Test updating enabled sites can select LeBull."""
+        insights.update_config(enabled_sites=["lebull"])
+
+        assert len(insights.scrapers) == 1
+        assert insights.scrapers[0].site_key == "lebull"
 
     def test_update_config_multiple_changes(self, insights):
         """Test updating multiple config values at once"""

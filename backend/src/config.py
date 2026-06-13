@@ -87,11 +87,30 @@ BETTING_SITES: Dict[str, Dict[str, Any]] = {
         "enabled": get_env_bool("BETCLIC_ENABLED", True),
         "rate_limit_seconds": get_env_int("BETCLIC_RATE_LIMIT", 5),
     },
-    "esc": {
-        "name": "Esc Online",
-        "url": os.getenv("ESC_URL", "https://www.esconline.pt"),
+    "bwin": {
+        "name": "Bwin.pt",
+        "url": os.getenv("BWIN_URL", "https://www.bwin.pt"),
         "sports_url": os.getenv(
-            "ESC_SPORTS_URL", "https://www.esconline.pt/sportsbook/futebol/"
+            "BWIN_SPORTS_URL", "https://www.bwin.pt/sports/futebol"
+        ),
+        "enabled": get_env_bool("BWIN_ENABLED", True),
+        "rate_limit_seconds": get_env_int("BWIN_RATE_LIMIT", 5),
+    },
+    "lebull": {
+        "name": "LeBull.pt",
+        "url": os.getenv("LEBULL_URL", "https://www.lebull.pt"),
+        "sports_url": os.getenv(
+            "LEBULL_SPORTS_URL", "https://www.lebull.pt/desporto/futebol"
+        ),
+        "enabled": get_env_bool("LEBULL_ENABLED", True),
+        "rate_limit_seconds": get_env_int("LEBULL_RATE_LIMIT", 5),
+    },
+    "esc": {
+        "name": "ESC Online / Estoril Sol Casinos",
+        "url": os.getenv("ESC_URL", "https://www.estorilsolcasinos.pt"),
+        "sports_url": os.getenv(
+            "ESC_SPORTS_URL",
+            "https://www.estorilsolcasinos.pt/pt/betting/sport/844/matches/date-0",
         ),
         "enabled": get_env_bool("ESC_ENABLED", True),
         "rate_limit_seconds": get_env_int("ESC_RATE_LIMIT", 5),
@@ -106,12 +125,39 @@ BETTING_SITES: Dict[str, Dict[str, Any]] = {
         "enabled": get_env_bool("SOLVERDE_ENABLED", True),
         "rate_limit_seconds": get_env_int("SOLVERDE_RATE_LIMIT", 5),
     },
+    "goldenpark": {
+        "name": "GoldenPark.pt",
+        "url": os.getenv("GOLDENPARK_URL", "https://www.goldenpark.pt"),
+        "sports_url": os.getenv(
+            "GOLDENPARK_SPORTS_URL",
+            "https://www.goldenpark.pt/pt/apostas-desportivas/futebol/",
+        ),
+        "enabled": get_env_bool("GOLDENPARK_ENABLED", True),
+        "rate_limit_seconds": get_env_int("GOLDENPARK_RATE_LIMIT", 5),
+    },
+    "casinoportugal": {
+        "name": "Casino Portugal",
+        "url": os.getenv("CASINOPORTUGAL_URL", "https://www.casinoportugal.pt"),
+        "sports_url": os.getenv(
+            "CASINOPORTUGAL_SPORTS_URL", "https://www.casinoportugal.pt/desporto"
+        ),
+        "offer_api_url": os.getenv(
+            "CASINOPORTUGAL_OFFER_API_URL",
+            "https://aio-offer-distribution.de-2.nsoft.cloud",
+        ),
+        "tenant_uuid": os.getenv(
+            "CASINOPORTUGAL_TENANT_UUID",
+            "10ca03ad-9dc4-4320-bbc2-c93a42194d08",
+        ),
+        "enabled": get_env_bool("CASINOPORTUGAL_ENABLED", True),
+        "rate_limit_seconds": get_env_int("CASINOPORTUGAL_RATE_LIMIT", 5),
+    },
     "placard": {
         "name": "Placard.pt",
-        "url": os.getenv("PLACARD_URL", "https://www.placard.pt"),
+        "url": os.getenv("PLACARD_URL", "https://apostas.placard.pt"),
         "sports_url": os.getenv(
             "PLACARD_SPORTS_URL",
-            "https://www.placard.pt/jogos-apostas-desportivas/futebol/",
+            "https://apostas.placard.pt/apostas-desportivas/futebol/",
         ),
         "enabled": get_env_bool("PLACARD_ENABLED", True),
         "rate_limit_seconds": get_env_int("PLACARD_RATE_LIMIT", 5),

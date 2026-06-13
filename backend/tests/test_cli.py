@@ -282,6 +282,17 @@ class TestGetScrapers:
         assert len(scrapers) == 1
         assert scrapers[0].__class__.__name__ == "BetanoScraper"
 
+    def test_get_scrapers_includes_lebull(self):
+        """Test LeBull scraper is selectable and included in all scrapers."""
+        from src.cli.main import get_scrapers
+
+        scrapers = get_scrapers("lebull")
+        assert len(scrapers) == 1
+        assert scrapers[0].__class__.__name__ == "LeBullScraper"
+
+        all_names = {scraper.__class__.__name__ for scraper in get_scrapers("all")}
+        assert "LeBullScraper" in all_names
+
 
 class TestErrorHandling:
     """Test error handling in CLI."""

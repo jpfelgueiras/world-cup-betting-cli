@@ -14,6 +14,8 @@ import pytest
 
 from src.scrapers.betano_scraper import BetanoScraper
 from src.scrapers.betclic_scraper import BetclicScraper
+from src.scrapers.bwin_scraper import BwinScraper
+from src.scrapers.lebull_scraper import LeBullScraper
 from src.scrapers.solverde_scraper import SolverdeScraper
 
 FIXTURES = Path(__file__).parent / "fixtures" / "scrapers"
@@ -45,10 +47,34 @@ def test_betano_parser_extracts_realistic_match_cards():
     )
 
 
+def test_lebull_parser_extracts_representative_api_payload():
+    scraper = LeBullScraper()
+
+    matches = scraper.parse_upcoming_matches_json(
+        _read_text("lebull_upcoming_matches.json")
+    )
+
+    assert len(matches) == 2
+    first = matches[0]
+    assert first.match_id == "LEBULL-5001"
+    assert first.site == "lebull"
+    assert first.site_name == "LeBull.pt"
+    assert first.home_team == "Portugal"
+    assert first.away_team == "Brazil"
+    assert first.home_win == pytest.approx(2.24)
+    assert first.draw == pytest.approx(3.35)
+    assert first.away_win == pytest.approx(3.00)
+    assert first.has_ou25() is True
+    assert first.has_btts() is True
+    assert first.url == "https://www.lebull.pt/desporto/futebol/portugal-brasil/LEBULL-5001"
+
+
 @pytest.mark.parametrize(
     ("scraper_cls", "fixture_name", "match_id", "site_key"),
     [
         (BetclicScraper, "betclic_upcoming_matches.json", "BETCLIC-2001", "betclic"),
+        (BwinScraper, "bwin_upcoming_matches.json", "BWIN-4001", "bwin"),
+        (LeBullScraper, "lebull_upcoming_matches.json", "LEBULL-5001", "lebull"),
         (
             SolverdeScraper,
             "solverde_upcoming_matches.json",
@@ -85,6 +111,16 @@ def test_json_backed_scrapers_parse_fixture_payloads(
         (
             BetclicScraper,
             "betclic_upcoming_matches.json",
+            "parse_upcoming_matches_json",
+        ),
+        (
+            BwinScraper,
+            "bwin_upcoming_matches.json",
+            "parse_upcoming_matches_json",
+        ),
+        (
+            LeBullScraper,
+            "lebull_upcoming_matches.json",
             "parse_upcoming_matches_json",
         ),
         (
@@ -129,6 +165,16 @@ def test_get_match_odds_uses_real_scraper_matching_logic(
         (
             BetclicScraper,
             "betclic_upcoming_matches.json",
+            "parse_upcoming_matches_json",
+        ),
+        (
+            BwinScraper,
+            "bwin_upcoming_matches.json",
+            "parse_upcoming_matches_json",
+        ),
+        (
+            LeBullScraper,
+            "lebull_upcoming_matches.json",
             "parse_upcoming_matches_json",
         ),
         (

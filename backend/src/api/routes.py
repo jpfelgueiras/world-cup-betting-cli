@@ -51,6 +51,12 @@ def get_scrapers(site: str = "all"):
     """Get list of scrapers based on site parameter"""
     from ..scrapers.betano_scraper import BetanoScraper
     from ..scrapers.betclic_scraper import BetclicScraper
+    from ..scrapers.bwin_scraper import BwinScraper
+    from ..scrapers.casinoportugal_scraper import CasinoPortugalScraper
+    from ..scrapers.esc_scraper import EscScraper
+    from ..scrapers.goldenpark_scraper import GoldenParkScraper
+    from ..scrapers.lebull_scraper import LeBullScraper
+    from ..scrapers.placard_scraper import PlacardScraper
     from ..scrapers.solverde_scraper import SolverdeScraper
 
     scrapers: List[Any] = []
@@ -58,8 +64,20 @@ def get_scrapers(site: str = "all"):
         scrapers.append(BetanoScraper())
     if site == "all" or site == "betclic":
         scrapers.append(BetclicScraper())
+    if site == "all" or site == "bwin":
+        scrapers.append(BwinScraper())
+    if site == "all" or site == "lebull":
+        scrapers.append(LeBullScraper())
+    if site == "all" or site == "esc":
+        scrapers.append(EscScraper())
     if site == "all" or site == "solverde":
         scrapers.append(SolverdeScraper())
+    if site == "all" or site == "goldenpark":
+        scrapers.append(GoldenParkScraper())
+    if site == "all" or site == "casinoportugal":
+        scrapers.append(CasinoPortugalScraper())
+    if site == "all" or site == "placard":
+        scrapers.append(PlacardScraper())
 
     return scrapers
 
@@ -96,15 +114,18 @@ async def health_check():
     - Database connection
     """
     from src import __version__
+    from src.config import BETTING_SITES
 
     bookmaker_statuses = []
-    for site_key in ["betano", "betclic", "solverde"]:
+    for site_key, config in BETTING_SITES.items():
+        if site_key == "nossaaposta":
+            continue
         status = BookmakerStatus(
             site_key=site_key,
-            site_name=site_key.capitalize() + ".pt",
-            enabled=True,
-            rate_limit_seconds=5,
-            status="operational",
+            site_name=config.get("name", site_key),
+            enabled=config.get("enabled", False),
+            rate_limit_seconds=config.get("rate_limit_seconds", 5),
+            status="operational" if config.get("enabled", False) else "disabled",
         )
         bookmaker_statuses.append(status)
 

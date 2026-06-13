@@ -13,6 +13,7 @@ import pytest
 from src.scrapers.base_scraper import BaseScraper, OddsData, ScraperError
 from src.scrapers.betano_scraper import BetanoScraper
 from src.scrapers.betclic_scraper import BetclicScraper
+from src.scrapers.bwin_scraper import BwinScraper
 from src.scrapers.solverde_scraper import SolverdeScraper
 
 
@@ -517,6 +518,71 @@ class TestSolverdeScraper:
 
         assert len(matches) > 0
         assert all(isinstance(m, OddsData) for m in matches)
+
+
+class TestBwinScraper:
+    """Tests for BwinScraper."""
+
+    @pytest.fixture
+    def scraper(self):
+        """Create BwinScraper instance."""
+        return BwinScraper()
+
+    def test_init_configures_correctly(self, scraper):
+        """Test initialization sets correct Bwin configuration."""
+        assert scraper.site_key == "bwin"
+        assert "Bwin" in scraper.site_name
+        assert "bwin.pt" in scraper.base_url.lower()
+
+    def test_parse_fixture_normalizes_bwin_event_shape(self, scraper):
+        """Test Bwin JSON fixture parses into normalized odds data."""
+        from pathlib import Path
+
+        payload = (
+            Path(__file__).parent
+            / "fixtures"
+            / "scrapers"
+            / "bwin_upcoming_matches.json"
+        ).read_text(encoding="utf-8")
+
+        matches = scraper.parse_upcoming_matches_json(payload)
+
+        assert len(matches) == 2
+        first = matches[0]
+        assert first.match_id == "BWIN-4001"
+        assert first.site == "bwin"
+        assert first.site_name == "Bwin.pt"
+        assert first.home_team == "Portugal"
+        assert first.away_team == "Brazil"
+        assert first.home_win == pytest.approx(2.28)
+        assert first.draw == pytest.approx(3.25)
+        assert first.away_win == pytest.approx(3.10)
+        assert first.has_1x2() is True
+        assert first.has_ou25() is True
+        assert first.has_btts() is True
+        assert first.market_name == "1x2"
+        assert first.league == "World Cup 2026"
+        assert first.competition == "International"
+        assert first.status == "ok"
+        assert first.error is None
+        assert (
+            first.url
+            == "https://www.bwin.pt/sports/eventos/portugal-brazil/BWIN-4001"
+        )
+        assert first.source_url == first.url
+        assert first.scrape_timestamp is not None
+
+    def test_get_match_odds_returns_bwin_fallback_when_live_unavailable(self, scraper):
+        """Bwin follows existing scraper fallback semantics when live scraping fails."""
+        odds = scraper.get_match_odds("Portugal", "Brazil")
+
+        assert odds is not None
+        assert odds.site == "bwin"
+        assert odds.has_1x2() is True
+        assert odds.market_name == "1x2"
+        assert odds.status == "fallback"
+        assert odds.error == "Live Bwin.pt scrape unavailable; deterministic fallback odds used."
+        assert odds.source_url == odds.url
 
 
 class TestScraperError:

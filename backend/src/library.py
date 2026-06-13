@@ -29,6 +29,12 @@ from .predictors.team_stats import TeamData
 from .scrapers.base_scraper import OddsData
 from .scrapers.betano_scraper import BetanoScraper
 from .scrapers.betclic_scraper import BetclicScraper
+from .scrapers.bwin_scraper import BwinScraper
+from .scrapers.casinoportugal_scraper import CasinoPortugalScraper
+from .scrapers.esc_scraper import EscScraper
+from .scrapers.goldenpark_scraper import GoldenParkScraper
+from .scrapers.lebull_scraper import LeBullScraper
+from .scrapers.placard_scraper import PlacardScraper
 from .scrapers.solverde_scraper import SolverdeScraper
 from .utils.ev_calculator import (
     BetRecommendation,
@@ -223,8 +229,20 @@ class BettingInsights:
             self.scrapers.append(BetanoScraper())
         if "betclic" in enabled_sites:
             self.scrapers.append(BetclicScraper())
+        if "bwin" in enabled_sites:
+            self.scrapers.append(BwinScraper())
+        if "lebull" in enabled_sites:
+            self.scrapers.append(LeBullScraper())
+        if "casinoportugal" in enabled_sites:
+            self.scrapers.append(CasinoPortugalScraper())
+        if "esc" in enabled_sites:
+            self.scrapers.append(EscScraper())
         if "solverde" in enabled_sites:
             self.scrapers.append(SolverdeScraper())
+        if "goldenpark" in enabled_sites:
+            self.scrapers.append(GoldenParkScraper())
+        if "placard" in enabled_sites:
+            self.scrapers.append(PlacardScraper())
 
         # Initialize cache
         if cache_enabled:
@@ -430,8 +448,20 @@ class BettingInsights:
                 self.scrapers.append(BetanoScraper())
             if "betclic" in enabled_sites:
                 self.scrapers.append(BetclicScraper())
+            if "bwin" in enabled_sites:
+                self.scrapers.append(BwinScraper())
+            if "lebull" in enabled_sites:
+                self.scrapers.append(LeBullScraper())
+            if "casinoportugal" in enabled_sites:
+                self.scrapers.append(CasinoPortugalScraper())
+            if "esc" in enabled_sites:
+                self.scrapers.append(EscScraper())
             if "solverde" in enabled_sites:
                 self.scrapers.append(SolverdeScraper())
+            if "goldenpark" in enabled_sites:
+                self.scrapers.append(GoldenParkScraper())
+            if "placard" in enabled_sites:
+                self.scrapers.append(PlacardScraper())
 
     def _create_team_data(self, team_name: str) -> TeamData:
         """Create team data (mock implementation)"""
