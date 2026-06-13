@@ -9,7 +9,14 @@ from datetime import datetime
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.app import app, create_app  # noqa: F401
+from src.api.app import (  # noqa: F401
+    _rate_limit_storage,
+    app,
+    create_app,
+    get_client_ip,
+    validate_auth_configuration,
+    validate_rate_limit_configuration,
+)
 from src.api.models import ConfidenceLevels  # noqa: F401
 from src.api.models import HealthResponse  # noqa: F401
 from src.api.models import MatchAnalysisResponse  # noqa: F401
@@ -26,6 +33,15 @@ from src.api.models import (
     TeamProbabilities,
     ValueBet,
 )
+
+
+@pytest.fixture(autouse=True)
+def api_test_environment(monkeypatch):
+    """Keep existing endpoint tests in local-dev mode unless a test overrides it."""
+    monkeypatch.setenv("DEV_MODE", "true")
+    monkeypatch.delenv("VALID_API_KEYS", raising=False)
+    monkeypatch.delenv("TRUST_PROXY_HEADERS", raising=False)
+    _rate_limit_storage.clear()
 
 
 class TestAPIModels:
@@ -202,6 +218,109 @@ class TestAPIModels:
         assert config.min_ev == 8.0
         assert len(config.enabled_sites) == 2
         assert "betano" in config.enabled_sites
+
+
+class TestAPIAuthentication:
+    """Tests for API key enforcement on protected routes."""
+
+    def test_protected_endpoint_requires_api_key(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.setenv("VALID_API_KEYS", "test-api-key")
+
+        client = TestClient(create_app())
+        response = client.get("/api/v1/config")
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "API key required"
+
+    def test_protected_endpoint_rejects_invalid_api_key(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.setenv("VALID_API_KEYS", "test-api-key")
+
+        client = TestClient(create_app())
+        response = client.get("/api/v1/config", headers={"X-API-Key": "wrong"})
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid API key"
+
+    def test_protected_endpoint_accepts_valid_api_key(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.setenv("VALID_API_KEYS", "test-api-key")
+
+        client = TestClient(create_app())
+        response = client.get("/api/v1/config", headers={"X-API-Key": "test-api-key"})
+
+        assert response.status_code == 200
+
+    def test_health_endpoint_stays_public(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.setenv("VALID_API_KEYS", "test-api-key")
+
+        client = TestClient(create_app())
+        response = client.get("/api/v1/health")
+
+        assert response.status_code == 200
+
+    def test_startup_rejects_missing_production_api_keys(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.delenv("VALID_API_KEYS", raising=False)
+
+        with pytest.raises(RuntimeError, match="VALID_API_KEYS"):
+            validate_auth_configuration()
+
+    def test_startup_rejects_placeholder_production_api_keys(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.setenv("VALID_API_KEYS", "dev-key-12345")
+
+        with pytest.raises(RuntimeError, match="VALID_API_KEYS"):
+            validate_auth_configuration()
+
+    def test_startup_rejects_missing_production_shared_rate_limit(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.delenv("RATE_LIMIT_REDIS_URL", raising=False)
+        monkeypatch.delenv("REDIS_URL", raising=False)
+        monkeypatch.delenv("ALLOW_IN_MEMORY_RATE_LIMIT", raising=False)
+
+        with pytest.raises(RuntimeError, match="RATE_LIMIT_REDIS_URL"):
+            validate_rate_limit_configuration()
+
+    def test_startup_accepts_explicit_smoke_test_memory_rate_limit(self, monkeypatch):
+        monkeypatch.setenv("DEV_MODE", "false")
+        monkeypatch.delenv("RATE_LIMIT_REDIS_URL", raising=False)
+        monkeypatch.delenv("REDIS_URL", raising=False)
+        monkeypatch.setenv("ALLOW_IN_MEMORY_RATE_LIMIT", "true")
+
+        validate_rate_limit_configuration()
+
+
+class TestRateLimitClientIp:
+    """Tests for proxy-aware rate-limit key resolution."""
+
+    def test_ignores_forwarded_for_by_default(self, monkeypatch):
+        monkeypatch.setenv("TRUST_PROXY_HEADERS", "false")
+        request = type(
+            "Request",
+            (),
+            {
+                "headers": {"x-forwarded-for": "203.0.113.1"},
+                "client": type("Client", (), {"host": "10.0.0.1"})(),
+            },
+        )()
+
+        assert get_client_ip(request) == "10.0.0.1"  # type: ignore[arg-type]
+
+    def test_uses_first_forwarded_for_from_trusted_proxy(self, monkeypatch):
+        monkeypatch.setenv("TRUST_PROXY_HEADERS", "true")
+        request = type(
+            "Request",
+            (),
+            {
+                "headers": {"x-forwarded-for": "203.0.113.1, 10.0.0.1"},
+                "client": type("Client", (), {"host": "10.0.0.1"})(),
+            },
+        )()
+
+        assert get_client_ip(request) == "203.0.113.1"  # type: ignore[arg-type]
 
 
 class TestHealthEndpoint:
@@ -619,7 +738,7 @@ class TestAppLifespan:
         with TestClient(create_app()):
             pass
 
-        assert warning_logs == ["⚠️  Database initialization skipped: boom"]
+        assert "⚠️  Database initialization skipped: boom" in warning_logs
 
     def test_validation_error_handler_returns_expected_payload(self):
         with TestClient(create_app()) as client:

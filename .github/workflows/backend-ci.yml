@@ -139,6 +139,7 @@ jobs:
           context: ./backend
           file: backend/Dockerfile
           push: false
+          load: true
           tags: worldcup-backend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -146,7 +147,11 @@ jobs:
       - name: Test Docker image health
         run: |
           echo "Starting container..."
-          docker run -d --name test-container -p 8000:8000 worldcup-backend:test
+          docker run -d --name test-container -p 8000:8000 \
+            -e DEV_MODE=false \
+            -e VALID_API_KEYS=ci-docker-health-key \
+            -e ALLOW_IN_MEMORY_RATE_LIMIT=true \
+            worldcup-backend:test
           CONTAINER_ID=$(docker ps -q -f name=test-container)
           if [ -z "$CONTAINER_ID" ]; then
             echo "ERROR: Container failed to start"
@@ -157,22 +162,22 @@ jobs:
           sleep 30
           echo "Checking if container is still running..."
           if ! docker ps | grep -q test-container; then
-            echo "WARNING: Container exited - this may be expected if app requires environment variables"
+            echo "ERROR: Container exited before the health check"
             echo "=== Last 50 lines of container logs ==="
             docker logs test-container 2>&1 | tail -50 || true
-            echo "Skipping health check failure for now - Docker build succeeded"
             docker rm test-container || true
-            exit 0
+            exit 1
           fi
           echo "Container is running. Testing health endpoint..."
           if curl -v -f --max-time 10 http://localhost:8000/health 2>&1; then
             echo "Health check passed!"
           else
-            echo "WARNING: Health endpoint not responding"
+            echo "ERROR: Health endpoint not responding"
             echo "=== Container logs ==="
             docker logs test-container 2>&1 | tail -50 || true
-            echo "Skipping failure - Docker build succeeded"
+            docker stop test-container || true
+            docker rm test-container || true
+            exit 1
           fi
           docker stop test-container || true
           docker rm test-container || true
-        continue-on-error: true
