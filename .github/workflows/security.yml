@@ -85,9 +85,11 @@ jobs:
         run: npm audit --audit-level=moderate
 
       - name: Install and run Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           npm install -g snyk
-          snyk test --severity-threshold=high || true
+          snyk test --severity-threshold=high
 
   secret-scan:
     name: Secret Scanning
