@@ -1,0 +1,16 @@
+title = "gitleaks config"
+
+[allowlist]
+description = "Project-wide allowlist for documentation placeholders and example values"
+regexes = [
+    # Placeholder API key / token / deploy-hook values used only in documentation
+    "fake-render-hook-key",
+    "public-demo-client-key-change-me",
+]
+paths = [
+    # Gitleaks self-config
+    "gitleaks\\.toml",
+    # Markdown documentation and examples
+    "docs/.*\\.md$",
+    "README\\.md$",
+]
