@@ -93,8 +93,9 @@ class PlacardScraper(BaseScraper):
             event_name = self._extract_event_name(event, home_team, away_team)
             source_url = self._extract_event_url(event)
 
+            match_id = self._build_match_id(home_team, away_team, match_date)
             match = OddsData(
-                match_id=str(event.get("id") or event.get("eventId") or self._build_match_id(home_team, away_team, match_date)),
+                match_id=str(event.get("id") or event.get("eventId") or match_id),
                 home_team=home_team,
                 away_team=away_team,
                 match_date=match_date,
@@ -134,7 +135,9 @@ class PlacardScraper(BaseScraper):
                     return nested
         return []
 
-    def _extract_teams(self, event: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    def _extract_teams(
+        self, event: Dict[str, Any]
+    ) -> Tuple[Optional[str], Optional[str]]:
         home = event.get("homeTeam") or event.get("home_team")
         away = event.get("awayTeam") or event.get("away_team")
         if home and away:
@@ -152,7 +155,9 @@ class PlacardScraper(BaseScraper):
             if home and away:
                 return home, away
             if len(participants) >= 2:
-                return self._participant_name(participants[0]), self._participant_name(participants[1])
+                return self._participant_name(participants[0]), self._participant_name(
+                    participants[1]
+                )
 
         name = event.get("name") or event.get("eventName") or event.get("title")
         if isinstance(name, str):
@@ -165,7 +170,11 @@ class PlacardScraper(BaseScraper):
 
     def _participant_name(self, participant: Any) -> Optional[str]:
         if isinstance(participant, dict):
-            value = participant.get("name") or participant.get("label") or participant.get("title")
+            value = (
+                participant.get("name")
+                or participant.get("label")
+                or participant.get("title")
+            )
             return str(value) if value else None
         return str(participant) if participant else None
 
@@ -197,7 +206,10 @@ class PlacardScraper(BaseScraper):
         if not raw_value:
             return None
         if isinstance(raw_value, (int, float)):
-            return datetime.fromtimestamp(raw_value / 1000 if raw_value > 10_000_000_000 else raw_value, tz=timezone.utc)
+            return datetime.fromtimestamp(
+                raw_value / 1000 if raw_value > 10_000_000_000 else raw_value,
+                tz=timezone.utc,
+            )
         if isinstance(raw_value, str):
             value = raw_value.replace("Z", "+00:00")
             try:
@@ -214,18 +226,31 @@ class PlacardScraper(BaseScraper):
     ) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[str]]:
         odds = event.get("odds")
         if isinstance(odds, dict):
-            home = self._to_float(odds.get("home") or odds.get("home_win") or odds.get("1"))
+            home = self._to_float(
+                odds.get("home") or odds.get("home_win") or odds.get("1")
+            )
             draw = self._to_float(odds.get("draw") or odds.get("x") or odds.get("X"))
-            away = self._to_float(odds.get("away") or odds.get("away_win") or odds.get("2"))
+            away = self._to_float(
+                odds.get("away") or odds.get("away_win") or odds.get("2")
+            )
             if home and draw and away:
-                return home, draw, away, str(event.get("marketName") or event.get("market") or "1X2")
+                return (
+                    home,
+                    draw,
+                    away,
+                    str(event.get("marketName") or event.get("market") or "1X2"),
+                )
 
         for market in event.get("markets", []) or []:
             if not isinstance(market, dict):
                 continue
-            market_name = str(market.get("name") or market.get("marketName") or "").strip()
+            market_name = str(
+                market.get("name") or market.get("marketName") or ""
+            ).strip()
             market_name_lower = market_name.lower()
-            market_type = str(market.get("marketType") or market.get("type") or "").lower()
+            market_type = str(
+                market.get("marketType") or market.get("type") or ""
+            ).lower()
             if not (
                 "1x2" in market_type
                 or "resultado" in market_name_lower
@@ -386,5 +411,7 @@ class PlacardScraper(BaseScraper):
         today = datetime.now(timezone.utc)
         return [
             self._create_mock_odds(home, away, today + timedelta(days=i + 1))
-            for i, (home, away) in enumerate(teams[: max(1, min(days_ahead, len(teams)))])
+            for i, (home, away) in enumerate(
+                teams[: max(1, min(days_ahead, len(teams)))]
+            )
         ]
