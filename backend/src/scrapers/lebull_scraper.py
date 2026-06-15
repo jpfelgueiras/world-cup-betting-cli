@@ -179,17 +179,26 @@ class LeBullScraper(BaseScraper):
             url=source_url,
             market_name="1x2",
             league=self._nested_name(event.get("league")) or event.get("league"),
-            competition=self._nested_name(event.get("competition")) or event.get("competition"),
+            competition=self._nested_name(event.get("competition"))
+            or event.get("competition"),
             status=event.get("status") or "ok",
             error=None,
             source_url=source_url,
         )
 
-    def _extract_teams(self, event: Dict[str, Any]) -> tuple[Optional[str], Optional[str]]:
+    def _extract_teams(
+        self, event: Dict[str, Any]
+    ) -> tuple[Optional[str], Optional[str]]:
         participants = event.get("participants") or event.get("competitors")
         if isinstance(participants, list) and len(participants) >= 2:
-            home = self._participant_by_role(participants, {"home", "1"}) or participants[0]
-            away = self._participant_by_role(participants, {"away", "2"}) or participants[1]
+            home = (
+                self._participant_by_role(participants, {"home", "1"})
+                or participants[0]
+            )
+            away = (
+                self._participant_by_role(participants, {"away", "2"})
+                or participants[1]
+            )
             return self._name_from(home), self._name_from(away)
 
         contestants = event.get("contestants")
@@ -253,7 +262,9 @@ class LeBullScraper(BaseScraper):
             if not self._is_1x2_market(market_name):
                 continue
             selections = self._selection_list(market)
-            odds_by_name = {self._selection_name(s): self._selection_odds(s) for s in selections}
+            odds_by_name = {
+                self._selection_name(s): self._selection_odds(s) for s in selections
+            }
             return (
                 self._first_named_odds(odds_by_name, ["1", home_team]),
                 self._first_named_odds(odds_by_name, ["x", "draw", "empate"]),
@@ -268,7 +279,10 @@ class LeBullScraper(BaseScraper):
             market_name = self._market_name(market)
             if "2.5" not in market_name and "2,5" not in market_name:
                 continue
-            if not any(token in market_name for token in ("over", "under", "mais", "menos", "total")):
+            if not any(
+                token in market_name
+                for token in ("over", "under", "mais", "menos", "total")
+            ):
                 continue
             odds_by_name = {
                 self._selection_name(s): self._selection_odds(s)
@@ -318,7 +332,12 @@ class LeBullScraper(BaseScraper):
 
     @staticmethod
     def _selection_list(market: Dict[str, Any]) -> List[Dict[str, Any]]:
-        selections = market.get("selections") or market.get("outcomes") or market.get("options") or []
+        selections = (
+            market.get("selections")
+            or market.get("outcomes")
+            or market.get("options")
+            or []
+        )
         if isinstance(selections, dict):
             return [s for s in selections.values() if isinstance(s, dict)]
         if isinstance(selections, list):
@@ -336,7 +355,9 @@ class LeBullScraper(BaseScraper):
         ).lower()
 
     def _selection_odds(self, selection: Dict[str, Any]) -> Optional[float]:
-        raw = selection.get("odds") or selection.get("price") or selection.get("decimal")
+        raw = (
+            selection.get("odds") or selection.get("price") or selection.get("decimal")
+        )
         if isinstance(raw, dict):
             raw = raw.get("decimal") or raw.get("odds") or raw.get("value")
         return self._parse_float(raw)
@@ -420,7 +441,9 @@ class LeBullScraper(BaseScraper):
         )
 
     @staticmethod
-    def _first_named_odds(odds_by_name: Dict[str, Optional[float]], names: List[str]) -> Optional[float]:
+    def _first_named_odds(
+        odds_by_name: Dict[str, Optional[float]], names: List[str]
+    ) -> Optional[float]:
         normalized_names = [name.lower() for name in names]
         for wanted in normalized_names:
             for actual, odds in odds_by_name.items():

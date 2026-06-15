@@ -66,7 +66,10 @@ def test_lebull_parser_extracts_representative_api_payload():
     assert first.away_win == pytest.approx(3.00)
     assert first.has_ou25() is True
     assert first.has_btts() is True
-    assert first.url == "https://www.lebull.pt/desporto/futebol/portugal-brasil/LEBULL-5001"
+    assert (
+        first.url
+        == "https://www.lebull.pt/desporto/futebol/portugal-brasil/LEBULL-5001"
+    )
 
 
 @pytest.mark.parametrize(

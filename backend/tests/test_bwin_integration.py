@@ -4,7 +4,8 @@ from click.testing import CliRunner
 
 from src.api.models import LibraryConfig, SiteType
 from src.api.routes import get_scrapers
-from src.cli.main import cli, get_scrapers as get_cli_scrapers
+from src.cli.main import cli
+from src.cli.main import get_scrapers as get_cli_scrapers
 from src.config import BETTING_SITES
 from src.library import BettingInsights
 from src.scrapers.bwin_scraper import BwinScraper
@@ -45,5 +46,7 @@ def test_cli_scraper_factory_and_choice_include_bwin():
     assert len(scrapers) == 1
     assert isinstance(scrapers[0], BwinScraper)
 
-    result = CliRunner().invoke(cli, ["predict", "Portugal vs Brazil", "--site", "bwin", "--format", "json"])
+    result = CliRunner().invoke(
+        cli, ["predict", "Portugal vs Brazil", "--site", "bwin", "--format", "json"]
+    )
     assert result.exit_code == 0

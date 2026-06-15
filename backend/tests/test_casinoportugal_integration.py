@@ -9,14 +9,19 @@ from fastapi.testclient import TestClient
 from src.api.app import app
 from src.api.models import SiteType
 from src.api.routes import get_scrapers as api_get_scrapers
-from src.cli.main import cli, get_scrapers as cli_get_scrapers
+from src.cli.main import cli
+from src.cli.main import get_scrapers as cli_get_scrapers
 from src.config import BETTING_SITES
 from src.library import BettingInsights
 from src.scrapers.base_scraper import OddsData, ScraperError
 from src.scrapers.casinoportugal_scraper import CasinoPortugalScraper
 
-
-FIXTURE = Path(__file__).parent / "fixtures" / "scrapers" / "casinoportugal_upcoming_matches.json"
+FIXTURE = (
+    Path(__file__).parent
+    / "fixtures"
+    / "scrapers"
+    / "casinoportugal_upcoming_matches.json"
+)
 
 
 class TestCasinoPortugalConfig:
@@ -42,11 +47,15 @@ class TestCasinoPortugalScraper:
         assert scraper.site_name == "Casino Portugal"
         assert scraper.base_url == "https://www.casinoportugal.pt"
         assert scraper.sports_url == "https://www.casinoportugal.pt/desporto"
-        assert scraper.offer_api_url == "https://aio-offer-distribution.de-2.nsoft.cloud"
+        assert (
+            scraper.offer_api_url == "https://aio-offer-distribution.de-2.nsoft.cloud"
+        )
         assert scraper.tenant_uuid == "10ca03ad-9dc4-4320-bbc2-c93a42194d08"
 
     def test_parse_fixture_normalizes_nsoft_offer_shape(self, scraper):
-        matches = scraper.parse_upcoming_matches_json(FIXTURE.read_text(encoding="utf-8"))
+        matches = scraper.parse_upcoming_matches_json(
+            FIXTURE.read_text(encoding="utf-8")
+        )
 
         assert len(matches) == 1
         match = matches[0]
@@ -67,10 +76,14 @@ class TestCasinoPortugalScraper:
         assert match.has_1x2() is True
         assert match.has_ou25() is True
         assert match.has_btts() is True
-        assert match.url == "https://www.casinoportugal.pt/desporto/d_all/ctg_678/e_808583"
+        assert (
+            match.url == "https://www.casinoportugal.pt/desporto/d_all/ctg_678/e_808583"
+        )
 
     def test_parse_fixture_preserves_status_metadata(self, scraper):
-        match = scraper.parse_upcoming_matches_json(FIXTURE.read_text(encoding="utf-8"))[0]
+        match = scraper.parse_upcoming_matches_json(
+            FIXTURE.read_text(encoding="utf-8")
+        )[0]
         data = match.to_dict()
 
         assert data["site"] == "casinoportugal"
@@ -82,7 +95,9 @@ class TestCasinoPortugalScraper:
         assert data["source_url"] == match.url
         assert data["scrape_timestamp"] == data["last_updated"]
 
-    def test_get_upcoming_matches_falls_back_when_live_unavailable(self, scraper, monkeypatch):
+    def test_get_upcoming_matches_falls_back_when_live_unavailable(
+        self, scraper, monkeypatch
+    ):
         def fail_request(*args, **kwargs):
             raise ScraperError("live blocked")
 
@@ -98,7 +113,9 @@ class TestCasinoPortugalScraper:
         monkeypatch.setattr(
             scraper,
             "get_upcoming_matches",
-            lambda days_ahead=7: scraper.parse_upcoming_matches_json(FIXTURE.read_text(encoding="utf-8")),
+            lambda days_ahead=7: scraper.parse_upcoming_matches_json(
+                FIXTURE.read_text(encoding="utf-8")
+            ),
         )
 
         odds = scraper.get_match_odds("Portugal", "República Democrática do Congo")
@@ -131,7 +148,9 @@ class TestCasinoPortugalWiring:
 
         assert response.status_code == 200
         bookmakers = response.json()
-        assert any(bookmaker["site_key"] == "casinoportugal" for bookmaker in bookmakers)
+        assert any(
+            bookmaker["site_key"] == "casinoportugal" for bookmaker in bookmakers
+        )
 
     def test_cli_get_scrapers_includes_casinoportugal_for_all_and_specific(self):
         all_site_keys = [scraper.site_key for scraper in cli_get_scrapers("all")]
@@ -149,7 +168,9 @@ class TestCasinoPortugalWiring:
         assert "Casino Portugal" in result.output
 
     def test_library_initializes_casinoportugal_when_enabled(self):
-        insights = BettingInsights(enabled_sites=["casinoportugal"], cache_enabled=False)
+        insights = BettingInsights(
+            enabled_sites=["casinoportugal"], cache_enabled=False
+        )
 
         assert len(insights.scrapers) == 1
         assert insights.scrapers[0].site_key == "casinoportugal"
@@ -163,7 +184,9 @@ class TestCasinoPortugalWiring:
         assert insights.scrapers[0].site_key == "casinoportugal"
 
     def test_library_bookmakers_include_casinoportugal_metadata(self):
-        insights = BettingInsights(enabled_sites=["casinoportugal"], cache_enabled=False)
+        insights = BettingInsights(
+            enabled_sites=["casinoportugal"], cache_enabled=False
+        )
 
         bookmakers = insights.get_bookmakers()
 
