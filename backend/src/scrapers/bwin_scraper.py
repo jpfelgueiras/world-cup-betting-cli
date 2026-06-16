@@ -32,9 +32,7 @@ class BwinScraper(BaseScraper):
             base_url=config.get("url", "https://www.bwin.pt"),
             rate_limit_seconds=config.get("rate_limit_seconds", 5),
         )
-        self.sports_url = config.get(
-            "sports_url", "https://www.bwin.pt/sports/futebol"
-        )
+        self.sports_url = config.get("sports_url", "https://www.bwin.pt/sports/futebol")
 
     def get_match_odds(
         self, home_team: str, away_team: str, match_date: Optional[datetime] = None
@@ -116,7 +114,9 @@ class BwinScraper(BaseScraper):
 
         if self._looks_like_event(node):
             enriched = dict(node)
-            enriched.setdefault("_competition_name", next_context.get("competition_name"))
+            enriched.setdefault(
+                "_competition_name", next_context.get("competition_name")
+            )
             enriched.setdefault("_region_name", next_context.get("region_name"))
             yield enriched
 
@@ -127,9 +127,16 @@ class BwinScraper(BaseScraper):
 
     @staticmethod
     def _looks_like_event(node: Dict[str, Any]) -> bool:
-        has_date = any(key in node for key in ("startDate", "startTime", "starts_at", "date"))
-        has_market = any(key in node for key in ("markets", "optionMarkets", "betOffers"))
-        has_teams = any(key in node for key in ("participants", "competitors", "contestants", "name"))
+        has_date = any(
+            key in node for key in ("startDate", "startTime", "starts_at", "date")
+        )
+        has_market = any(
+            key in node for key in ("markets", "optionMarkets", "betOffers")
+        )
+        has_teams = any(
+            key in node
+            for key in ("participants", "competitors", "contestants", "name")
+        )
         return has_date and has_market and has_teams
 
     def _parse_event(self, event: Dict[str, Any]) -> Optional[OddsData]:
@@ -146,7 +153,12 @@ class BwinScraper(BaseScraper):
         if match_date is None:
             return None
 
-        markets = event.get("markets") or event.get("optionMarkets") or event.get("betOffers") or []
+        markets = (
+            event.get("markets")
+            or event.get("optionMarkets")
+            or event.get("betOffers")
+            or []
+        )
         home_win, draw, away_win = self._extract_1x2(markets, home_team, away_team)
         over_2_5, under_2_5 = self._extract_over_under_25(markets)
         btts_yes, btts_no = self._extract_btts(markets)
@@ -176,18 +188,30 @@ class BwinScraper(BaseScraper):
             btts_no=btts_no,
             url=source_url,
             market_name="1x2",
-            league=event.get("league") or event.get("competitionName") or event.get("_competition_name"),
-            competition=event.get("regionName") or event.get("category") or event.get("_region_name"),
+            league=event.get("league")
+            or event.get("competitionName")
+            or event.get("_competition_name"),
+            competition=event.get("regionName")
+            or event.get("category")
+            or event.get("_region_name"),
             status="ok",
             error=None,
             source_url=source_url,
         )
 
-    def _extract_teams(self, event: Dict[str, Any]) -> tuple[Optional[str], Optional[str]]:
+    def _extract_teams(
+        self, event: Dict[str, Any]
+    ) -> tuple[Optional[str], Optional[str]]:
         participants = event.get("participants") or event.get("competitors")
         if isinstance(participants, list) and len(participants) >= 2:
-            home = self._participant_by_role(participants, {"home", "1"}) or participants[0]
-            away = self._participant_by_role(participants, {"away", "2"}) or participants[1]
+            home = (
+                self._participant_by_role(participants, {"home", "1"})
+                or participants[0]
+            )
+            away = (
+                self._participant_by_role(participants, {"away", "2"})
+                or participants[1]
+            )
             return self._name_from(home), self._name_from(away)
 
         contestants = event.get("contestants")
@@ -246,7 +270,9 @@ class BwinScraper(BaseScraper):
             if not self._is_1x2_market(market_name):
                 continue
             selections = self._selection_list(market)
-            odds_by_name = {self._selection_name(s): self._selection_odds(s) for s in selections}
+            odds_by_name = {
+                self._selection_name(s): self._selection_odds(s) for s in selections
+            }
             return (
                 self._first_named_odds(odds_by_name, ["1", home_team]),
                 self._first_named_odds(odds_by_name, ["x", "draw", "empate"]),
@@ -261,7 +287,10 @@ class BwinScraper(BaseScraper):
             market_name = self._market_name(market)
             if "2.5" not in market_name and "2,5" not in market_name:
                 continue
-            if not any(token in market_name for token in ("over", "under", "mais", "menos", "total")):
+            if not any(
+                token in market_name
+                for token in ("over", "under", "mais", "menos", "total")
+            ):
                 continue
             odds_by_name = {
                 self._selection_name(s): self._selection_odds(s)
@@ -311,7 +340,12 @@ class BwinScraper(BaseScraper):
 
     @staticmethod
     def _selection_list(market: Dict[str, Any]) -> List[Dict[str, Any]]:
-        selections = market.get("selections") or market.get("outcomes") or market.get("options") or []
+        selections = (
+            market.get("selections")
+            or market.get("outcomes")
+            or market.get("options")
+            or []
+        )
         if isinstance(selections, dict):
             return [s for s in selections.values() if isinstance(s, dict)]
         if isinstance(selections, list):
@@ -329,7 +363,9 @@ class BwinScraper(BaseScraper):
         ).lower()
 
     def _selection_odds(self, selection: Dict[str, Any]) -> Optional[float]:
-        raw = selection.get("odds") or selection.get("price") or selection.get("decimal")
+        raw = (
+            selection.get("odds") or selection.get("price") or selection.get("decimal")
+        )
         if isinstance(raw, dict):
             raw = raw.get("decimal") or raw.get("odds") or raw.get("value")
         return self._parse_float(raw)
@@ -358,7 +394,9 @@ class BwinScraper(BaseScraper):
         )
 
     @staticmethod
-    def _first_named_odds(odds_by_name: Dict[str, Optional[float]], names: List[str]) -> Optional[float]:
+    def _first_named_odds(
+        odds_by_name: Dict[str, Optional[float]], names: List[str]
+    ) -> Optional[float]:
         normalized_names = [name.lower() for name in names]
         for wanted in normalized_names:
             for actual, odds in odds_by_name.items():

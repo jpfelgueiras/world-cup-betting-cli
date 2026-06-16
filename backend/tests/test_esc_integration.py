@@ -5,8 +5,10 @@ import asyncio
 from click.testing import CliRunner
 
 from src.api.models import SiteType
-from src.api.routes import get_scrapers as get_api_scrapers, health_check
-from src.cli.main import cli, get_scrapers as get_cli_scrapers
+from src.api.routes import get_scrapers as get_api_scrapers
+from src.api.routes import health_check
+from src.cli.main import cli
+from src.cli.main import get_scrapers as get_cli_scrapers
 from src.library import BettingInsights
 from src.scrapers.esc_scraper import EscScraper
 

@@ -76,9 +76,12 @@ class CasinoPortugalScraper(BaseScraper):
             for outcome in market.get("outcomes", []):
                 outcome_meta[outcome.get("id")] = outcome
 
-        categories = {category.get("id"): category for category in data.get("categories", [])}
+        categories = {
+            category.get("id"): category for category in data.get("categories", [])
+        }
         tournaments = {
-            tournament.get("id"): tournament for tournament in data.get("tournaments", [])
+            tournament.get("id"): tournament
+            for tournament in data.get("tournaments", [])
         }
 
         matches: List[OddsData] = []
@@ -96,7 +99,9 @@ class CasinoPortugalScraper(BaseScraper):
 
             tournament = tournaments.get(event.get("tournamentId"), {})
             category = categories.get(tournament.get("categoryId"), {})
-            parsed_markets = self._parse_event_markets(event, markets_meta, outcome_meta)
+            parsed_markets = self._parse_event_markets(
+                event, markets_meta, outcome_meta
+            )
             one_x_two = parsed_markets.get("1x2", {})
             if not {"home", "draw", "away"}.issubset(one_x_two):
                 continue
@@ -158,7 +163,9 @@ class CasinoPortugalScraper(BaseScraper):
     ) -> Dict[str, float]:
         result: Dict[str, float] = {}
         for outcome in outcomes:
-            name = (outcome_meta.get(outcome.get("outcomeId"), {}).get("name") or "").lower()
+            name = (
+                outcome_meta.get(outcome.get("outcomeId"), {}).get("name") or ""
+            ).lower()
             odd = self._decimal_odds(outcome.get("odds"))
             if odd is None:
                 continue
@@ -180,7 +187,9 @@ class CasinoPortugalScraper(BaseScraper):
                 for specifier in outcome.get("specifiers", [])
             ):
                 continue
-            name = (outcome_meta.get(outcome.get("outcomeId"), {}).get("name") or "").lower()
+            name = (
+                outcome_meta.get(outcome.get("outcomeId"), {}).get("name") or ""
+            ).lower()
             odd = self._decimal_odds(outcome.get("odds"))
             if odd is None:
                 continue
@@ -207,9 +216,9 @@ class CasinoPortugalScraper(BaseScraper):
         return result
 
     def _offer_url(self, days_ahead: int) -> str:
-        starts_at_to = (datetime.now(timezone.utc) + timedelta(days=days_ahead)).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )
+        starts_at_to = (
+            datetime.now(timezone.utc) + timedelta(days=days_ahead)
+        ).strftime("%Y-%m-%dT%H:%M:%S")
         return (
             f"{self.offer_api_url}/tenants/{self.tenant_uuid}/games/{self.GAME_IDS}"
             f"/languages/{self.LANGUAGE}/offer/cursors"
@@ -294,5 +303,7 @@ class CasinoPortugalScraper(BaseScraper):
         matches = []
         today = datetime.now()
         for i, (home, away) in enumerate(teams[: max(days_ahead, 0)]):
-            matches.append(self._create_mock_odds(home, away, today + timedelta(days=i + 1)))
+            matches.append(
+                self._create_mock_odds(home, away, today + timedelta(days=i + 1))
+            )
         return matches

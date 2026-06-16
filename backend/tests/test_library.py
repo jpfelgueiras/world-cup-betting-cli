@@ -440,6 +440,8 @@ class TestBettingInsights:
 
     def test_scan_upcoming_matches_returns_result(self, insights):
         """Test scan_upcoming_matches returns ScanResult"""
+        # Disable live scrapers to keep the test deterministic and fast.
+        insights.scrapers = []
         result = insights.scan_upcoming_matches(days_ahead=7)
 
         assert isinstance(result, ScanResult)
@@ -448,6 +450,7 @@ class TestBettingInsights:
 
     def test_scan_upcoming_matches_custom_days(self, insights):
         """Test scan with custom days_ahead"""
+        insights.scrapers = []
         result = insights.scan_upcoming_matches(days_ahead=14)
 
         assert isinstance(result, ScanResult)
@@ -456,6 +459,7 @@ class TestBettingInsights:
 
     def test_scan_with_custom_thresholds(self, insights):
         """Test scan with custom EV/confidence thresholds"""
+        insights.scrapers = []
         result = insights.scan_upcoming_matches(
             days_ahead=7, min_ev=10.0, min_confidence=70.0
         )

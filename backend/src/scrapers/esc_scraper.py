@@ -94,7 +94,9 @@ class EscScraper(BaseScraper):
             time_elem = card.select_one("time[datetime], [data-start-time]")
             starts_at = ""
             if time_elem:
-                starts_at = time_elem.get("datetime") or time_elem.get("data-start-time", "")
+                starts_at = str(
+                    time_elem.get("datetime") or time_elem.get("data-start-time", "")
+                )
             match_date = self._parse_datetime(starts_at)
             if not match_date:
                 continue
@@ -103,12 +105,15 @@ class EscScraper(BaseScraper):
             if not all(odds.values()):
                 continue
 
-            match_id = card.get("data-match-id") or card.get("id") or self._match_id(
-                home, away, match_date
+            match_id = str(
+                card.get("data-match-id")
+                or card.get("id")
+                or self._match_id(home, away, match_date)
             )
-            url = card.get("data-url") or card.get("href") or self.sports_url
-            competition = card.get("data-competition") or self._text(
-                card, ".competition, [data-competition-name]"
+            url = str(card.get("data-url") or card.get("href") or self.sports_url)
+            competition = str(
+                card.get("data-competition")
+                or self._text(card, ".competition, [data-competition-name]")
             )
 
             matches.append(
@@ -124,8 +129,8 @@ class EscScraper(BaseScraper):
                     away_win=odds.get("away"),
                     url=urljoin(self.base_url, url),
                     market_name=self._extract_html_market_name(card),
-                    league=competition or None,
-                    competition=competition or None,
+                    league=competition if competition else None,
+                    competition=competition if competition else None,
                     status="ok",
                 )
             )
@@ -158,7 +163,9 @@ class EscScraper(BaseScraper):
         if not home or not away:
             return None
 
-        starts_at = event.get("starts_at") or event.get("startTime") or event.get("date")
+        starts_at = (
+            event.get("starts_at") or event.get("startTime") or event.get("date")
+        )
         match_date = self._parse_datetime(starts_at)
         if not match_date:
             return None
@@ -196,7 +203,7 @@ class EscScraper(BaseScraper):
                 odds["draw"] = self._parse_float(one_x_two.get("draw"))
                 odds["away"] = self._parse_float(one_x_two.get("away"))
                 return odds
-            markets_iter = markets.values()
+            markets_iter = list(markets.values())
         elif isinstance(markets, list):
             markets_iter = markets
         else:
@@ -213,9 +220,13 @@ class EscScraper(BaseScraper):
                 if not isinstance(selection, dict):
                     continue
                 key = str(
-                    selection.get("name") or selection.get("type") or selection.get("label")
+                    selection.get("name")
+                    or selection.get("type")
+                    or selection.get("label")
                 ).lower()
-                value = self._parse_float(selection.get("odds") or selection.get("price"))
+                value = self._parse_float(
+                    selection.get("odds") or selection.get("price")
+                )
                 if key in {"1", "home", "casa"}:
                     odds["home"] = value
                 elif key in {"x", "draw", "empate"}:
@@ -236,14 +247,16 @@ class EscScraper(BaseScraper):
         for key, selector in selectors.items():
             elem = card.select_one(selector)
             if elem:
-                odds[key] = self._parse_float(elem.get("data-odds") or elem.get_text(" "))
+                odds[key] = self._parse_float(
+                    elem.get("data-odds") or elem.get_text(" ")
+                )
         return odds
 
     def _extract_json_market_name(self, markets: Any) -> Optional[str]:
         if isinstance(markets, dict):
             if any(key in markets for key in ("1x2", "1X2")):
                 return "1X2"
-            markets_iter = markets.values()
+            markets_iter = list(markets.values())
         elif isinstance(markets, list):
             markets_iter = markets
         else:
@@ -318,7 +331,9 @@ class EscScraper(BaseScraper):
         today = datetime.now()
         return [
             self._create_fallback_odds(home, away, today + timedelta(days=index + 1))
-            for index, (home, away) in enumerate(teams[: max(1, min(days_ahead, len(teams)))])
+            for index, (home, away) in enumerate(
+                teams[: max(1, min(days_ahead, len(teams)))]
+            )
         ]
 
     def _parse_datetime(self, value: Any) -> Optional[datetime]:
@@ -346,8 +361,10 @@ class EscScraper(BaseScraper):
         found = element.select_one(selector)
         if not found:
             return ""
-        return found.get("data-home-team") or found.get("data-away-team") or found.get_text(
-            " ", strip=True
+        return (
+            found.get("data-home-team")
+            or found.get("data-away-team")
+            or found.get_text(" ", strip=True)
         )
 
     def _match_id(self, home_team: str, away_team: str, match_date: datetime) -> str:

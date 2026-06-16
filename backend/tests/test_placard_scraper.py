@@ -1,16 +1,15 @@
 """Tests for Placard.pt scraper integration."""
 
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 
 from click.testing import CliRunner
 
 from src.api import routes
-from src.cli.main import cli, get_scrapers as get_cli_scrapers
+from src.cli.main import cli
+from src.cli.main import get_scrapers as get_cli_scrapers
 from src.library import BettingInsights
 from src.scrapers import PlacardScraper
-
 
 FIXTURE_PATH = (
     Path(__file__).parent / "fixtures" / "scrapers" / "placard_upcoming_matches.json"

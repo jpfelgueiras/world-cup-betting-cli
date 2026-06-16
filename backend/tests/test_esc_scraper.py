@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 
 from src.config import BETTING_SITES
-from src.scrapers.esc_scraper import EscScraper
 from src.scrapers import EscScraper as ExportedEscScraper
 from src.scrapers.base_scraper import OddsData, ScraperError
+from src.scrapers.esc_scraper import EscScraper
 
 FIXTURES = Path(__file__).parent / "fixtures" / "scrapers"
 
@@ -85,7 +85,9 @@ def test_parse_upcoming_matches_html_fixture_normalizes_1x2_data():
     assert first.url == "https://www.estorilsolcasinos.pt/pt/betting/event/ESC-H-2001"
 
 
-def test_get_upcoming_matches_uses_explicit_fallback_when_live_scraping_blocked(monkeypatch):
+def test_get_upcoming_matches_uses_explicit_fallback_when_live_scraping_blocked(
+    monkeypatch,
+):
     scraper = EscScraper()
 
     def blocked_request(_url):

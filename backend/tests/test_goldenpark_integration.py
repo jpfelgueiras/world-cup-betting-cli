@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
-
 from fastapi.testclient import TestClient
 
 from src.api.app import create_app
 from src.api.models import LibraryConfig, MatchPredictionRequest, ScanRequest, SiteType
 from src.api.routes import get_scrapers as get_api_scrapers
-from src.cli.main import cli, get_scrapers as get_cli_scrapers
+from src.cli.main import cli
+from src.cli.main import get_scrapers as get_cli_scrapers
 from src.config import BETTING_SITES
 from src.library import BettingInsights
 from src.scrapers import GoldenParkScraper
@@ -29,9 +29,12 @@ def test_config_and_api_models_include_goldenpark():
     assert BETTING_SITES["goldenpark"]["enabled"] is True
 
     assert SiteType.GOLDENPARK.value == "goldenpark"
-    assert MatchPredictionRequest(
-        home_team="Portugal", away_team="Brazil", site="goldenpark"
-    ).site is SiteType.GOLDENPARK
+    assert (
+        MatchPredictionRequest(
+            home_team="Portugal", away_team="Brazil", site="goldenpark"
+        ).site
+        is SiteType.GOLDENPARK
+    )
     assert ScanRequest(site="goldenpark").site is SiteType.GOLDENPARK
     assert "goldenpark" in LibraryConfig().enabled_sites
 
@@ -122,7 +125,9 @@ def test_goldenpark_is_wired_into_cli_api_and_library():
     assert [s.__class__.__name__ for s in get_cli_scrapers("goldenpark")] == [
         "GoldenParkScraper"
     ]
-    assert any(s.__class__.__name__ == "GoldenParkScraper" for s in get_cli_scrapers("all"))
+    assert any(
+        s.__class__.__name__ == "GoldenParkScraper" for s in get_cli_scrapers("all")
+    )
     assert [s.__class__.__name__ for s in get_api_scrapers("goldenpark")] == [
         "GoldenParkScraper"
     ]

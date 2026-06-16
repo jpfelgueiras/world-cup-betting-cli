@@ -7,11 +7,11 @@ from click.testing import CliRunner
 
 from src.api import routes
 from src.api.models import SiteType
-from src.cli.main import cli, get_scrapers as get_cli_scrapers
+from src.cli.main import cli
+from src.cli.main import get_scrapers as get_cli_scrapers
 from src.config import BETTING_SITES
 from src.library import BettingInsights
 from src.scrapers import LeBullScraper
-
 
 FIXTURE_PATH = (
     Path(__file__).parent / "fixtures" / "scrapers" / "lebull_upcoming_matches.json"

@@ -566,8 +566,7 @@ class TestBwinScraper:
         assert first.status == "ok"
         assert first.error is None
         assert (
-            first.url
-            == "https://www.bwin.pt/sports/eventos/portugal-brazil/BWIN-4001"
+            first.url == "https://www.bwin.pt/sports/eventos/portugal-brazil/BWIN-4001"
         )
         assert first.source_url == first.url
         assert first.scrape_timestamp is not None
@@ -581,7 +580,10 @@ class TestBwinScraper:
         assert odds.has_1x2() is True
         assert odds.market_name == "1x2"
         assert odds.status == "fallback"
-        assert odds.error == "Live Bwin.pt scrape unavailable; deterministic fallback odds used."
+        assert (
+            odds.error
+            == "Live Bwin.pt scrape unavailable; deterministic fallback odds used."
+        )
         assert odds.source_url == odds.url
 
 
